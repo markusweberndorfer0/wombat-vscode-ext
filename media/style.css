@@ -1,0 +1,23 @@
+.heading {
+	font-size: 14px;
+	text-transform: uppercase;
+	font-weight: bold;
+}
+
+select {
+	font-size: 13px;
+	width: 100%;
+	background-color: #313131;
+	border-radius: 0;
+	color: white;
+}
+
+.user-select {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+}
+
+.mr-4 {
+	margin-right: 4px;
+}

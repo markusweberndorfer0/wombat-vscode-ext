@@ -12,17 +12,26 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "kipr-wombat-vscode-extension.helloWorld",
-        "title": "Hello World"
-      },
-      {
-        "command": "kipr-wombat-vscode-extension.ask-question",
-        "category": "TEST",
-        "title": "Ask question"
-      }
-    ]
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "wombat-sidebar-view",
+          "title": "KIPR Wombat",
+          "icon": "media/logo.svg"
+        }
+      ]
+    },
+    "views": {
+      "wombat-sidebar-view": [
+        {
+          "type": "webview",
+          "id": "wombat-sidebar",
+          "name": "KIPR Wombat",
+          "icon": "media/logo.svg",
+          "contextualTitle": "KIPR Wombat"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
