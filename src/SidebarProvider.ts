@@ -24,14 +24,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
                 case "create-user":
-                    let options: vscode.InputBoxOptions = {
+                    let createUserOptions: vscode.InputBoxOptions = {
                         prompt: "Enter the name of the new user",
                         placeHolder: "Name of new user"
                     };
 
-                    vscode.window.showInputBox(options).then(value => {
+                    vscode.window.showInputBox(createUserOptions).then(value => {
                         if (!value) {
-                            vscode.window.showWarningMessage("No user name given, no user created");
+                            vscode.window.showErrorMessage("No user name given, no user created");
                         }
                     });
                     break;
@@ -43,6 +43,28 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             vscode.window.showInformationMessage("User wasn't deleted!");
                         }
                     });
+                    break;
+                case "create-project":
+                    let createProjectOptions: vscode.InputBoxOptions = {
+                        prompt: "Enter the name of the new project",
+                        placeHolder: "Name of new project"
+                    };
+
+                    vscode.window.showInputBox(createProjectOptions).then(value => {
+                        if (!value) {
+                            vscode.window.showErrorMessage("No project name given, no project created");
+                        }
+                    });
+                    break;
+                case "delete-project":
+                    vscode.window.showInformationMessage("Do you really want to delete project " + data.projectname + "?", "Yes", "No").then(answer => {
+                        if (answer === "Yes") {
+                            vscode.window.showInformationMessage("Project was deleted");
+                        } else if (answer === "No") {
+                            vscode.window.showInformationMessage("Project wasn't deleted!");
+                        }
+                    });
+                    break;
             }
         });
     }

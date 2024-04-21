@@ -23,14 +23,54 @@ function deleteUser(username) {
     });
 }
 
+/**
+ * Sends an api request to create project
+ * @param {string} username
+ */
+function createProject(username) {
+    vscode.postMessage({
+        type: "create-project",
+        username
+    });
+}
+
+/**
+ * Sends an api request to delete project
+ * @param {string} username 
+ * @param {string} projectname 
+ */
+function deleteProject(username, projectname) {
+    vscode.postMessage({
+        type: "delete-project",
+        username,
+        projectname
+    });
+}
+
 
 // Add event listeners
 document.getElementById("create-user")?.addEventListener("click", createUser);
 document.getElementById("delete-user")?.addEventListener("click", () => {
     // @ts-ignore
-    let username = document.querySelector("#user-select")?.value;
+    let username = document.getElementById("user-select")?.value;
     if (username !== null) {
         deleteUser(username);
+    }
+});
+document.getElementById("create-project")?.addEventListener("click", () => {
+    // @ts-ignore
+    let username = document.getElementById("user-select")?.value;
+    if (username !== null) {
+        createProject(username);
+    }
+});
+document.getElementById("delete-project")?.addEventListener("click", () => {
+    // @ts-ignore
+    let username = document.getElementById("user-select")?.value;
+    // @ts-ignore
+    let projectname = document.getElementById("project-select")?.value;
+    if (username !== null && projectname !== null) {
+        deleteProject(username, projectname);
     }
 });
 
