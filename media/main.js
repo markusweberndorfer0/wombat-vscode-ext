@@ -3,7 +3,6 @@
 
 (function () {
     const vscode = acquireVsCodeApi();
-    console.log("called");
 
     const oldState = /** @type {{ count: number} | undefined} */ (vscode.getState());
 

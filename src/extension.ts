@@ -10,6 +10,17 @@ const cats = {
 export function activate(context: vscode.ExtensionContext) {
 	const sidebarProvider = new SidebarProvider(context.extensionUri);
 	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider("wombat-sidebar", sidebarProvider)
+		vscode.window.registerWebviewViewProvider("wombat-sidebar", sidebarProvider),
 	);
+
+	/* let options: vscode.InputBoxOptions = {
+		prompt: "Enter the name of the new user",
+		placeHolder: "Name of new user"
+	};
+
+	vscode.window.showInputBox(options).then(value => {
+		if (!value) {
+			return;
+		}	// show the next dialog, etc.
+	}); */
 }
