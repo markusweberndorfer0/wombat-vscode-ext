@@ -104,21 +104,50 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 				<title>KIPR Wombat</title>
 			</head>
 			<body>
-				<h3 class="heading">Users</h3>
+				<div class="heading">Users</div>
 
-				<div class="user-select">
-					<select class="" name="users" id="users">
-						<option value="Default User">User1</option>
-						<option value="saab">User2</option>
-						<option value="Default User2">User3</option>
-						<option value="audi">User4</option>
+				<div class="select">
+					<select id="user-select">
+						<option value="User1">User1</option>
+						<option value="User2">User2</option>
+						<option value="User3">User3</option>
+						<option value="User4">User4</option>
 					</select>
-					<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
 					<img id="create-user" src="${svgPlusIcon}"></img>
 					<img id="delete-user" src="${svgMinusIcon}"></img>
 				</div>
 
-				<div id="lines-of-code-counter"></div>
+                <div class="heading mt-15">Projects</div>
+
+                <div class="select">
+					<select id="project-select">
+						<option value="Proj 1">Proj 1</option>
+						<option value="Proj 2">Proj 2</option>
+						<option value="Proj 3">Proj 3</option>
+						<option value="Proj 4">Proj 4</option>
+					</select>
+					<img id="create-project" src="${svgPlusIcon}"></img>
+					<img id="delete-project" src="${svgMinusIcon}"></img>
+				</div>
+                
+                <div class="heading mt-15">Project files</div>
+                <div class="heading-project-files">Include</div>
+                <div class="project-files">test.h</div>
+                <div class="project-files">test2.h</div>
+                <div class="project-files">test3.h</div>
+                <div class="project-files">test4.h</div>
+
+                <div class="heading-project-files" style="margin-top: 5px;">Source</div>
+                <div class="project-files">main.c</div>
+                <div class="project-files">main2.c</div>
+                <div class="project-files">main3.c</div>
+                <div class="project-files">main4.c</div>
+
+                <div class="heading-project-files" style="margin-top: 5px;">Data</div>
+                <div class="project-files">data.dat</div>
+                <div class="project-files">data2.dat</div>
+                <div class="project-files">data3.dat</div>
+                <div class="project-files">data4.dat</div>
 
 				<script nonce="${nonce}" src="${scriptUri}">
 				</script>

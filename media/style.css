@@ -4,6 +4,34 @@
 	font-weight: bold;
 }
 
+.heading-project-files {
+	font-size: 14px;
+	text-transform: uppercase;
+	font-weight: 500;
+	margin-left: 5px;
+}
+
+.project-files {
+	font-size: 14px;
+	text-transform: none;
+	font-weight: 400;
+	padding: 2px;
+	margin-left: 10px;
+}
+
+.project-files:hover {
+	background-color: var(--vscode-editorStickyScrollHover-background);
+	cursor: pointer;
+}
+
+.mt-15 {
+	margin-top: 15px;
+}
+
+img:hover {
+	cursor: pointer;
+}
+
 select {
 	font-size: 13px;
 	width: 100%;
@@ -12,7 +40,7 @@ select {
 	color: white;
 }
 
-.user-select {
+.select {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-around;
