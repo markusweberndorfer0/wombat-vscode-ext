@@ -12,15 +12,4 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider("wombat-sidebar", sidebarProvider),
 	);
-
-	/* let options: vscode.InputBoxOptions = {
-		prompt: "Enter the name of the new user",
-		placeHolder: "Name of new user"
-	};
-
-	vscode.window.showInputBox(options).then(value => {
-		if (!value) {
-			return;
-		}	// show the next dialog, etc.
-	}); */
 }

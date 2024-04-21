@@ -1,71 +1,90 @@
-import * as vscode from 'vscode';
-import { getNonce } from './getNonce';
+import * as vscode from "vscode";
+import { getNonce } from "./getNonce";
 
-/**
- * Provides the sidebar for the app
- */
 export class SidebarProvider implements vscode.WebviewViewProvider {
-	_view?: vscode.WebviewView;
-	_doc?: vscode.TextDocument;
-	private readonly _extensionUri: vscode.Uri;
+    _view?: vscode.WebviewView;
+    _doc?: vscode.TextDocument;
+    private readonly _extensionUri: vscode.Uri;
 
-	/**
-	 * Default ctor
-	 * @param _extensionUri the uri of the vscode extension
-	 */
-	constructor(_extensionUri: vscode.Uri) {
-		this._extensionUri = _extensionUri;
-	}
+    constructor(_extensionUri: vscode.Uri) {
+        this._extensionUri = _extensionUri;
+    }
 
-	/**
-	 * Resolves the webview when the icon is clicked
-	 * @param webviewView WebView to restore
-	 */
-	public resolveWebviewView(webviewView: vscode.WebviewView): void | Thenable<void> {
-		this._view = webviewView;
+    public resolveWebviewView(webviewView: vscode.WebviewView) {
+        this._view = webviewView;
 
-		webviewView.webview.options = {
-			enableScripts: true,
-			localResourceRoots: [this._extensionUri]
-		};
+        webviewView.webview.options = {
+            // Allow scripts in the webview
+            enableScripts: true,
+            localResourceRoots: [vscode.Uri.joinPath(this._extensionUri, 'media')]
+        };
 
-		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-	}
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-	/**
-	 * Creates the html for the webview
-	 * @param webview WebView to restore
-	 * @returns the created html
-	 */
-	private _getHtmlForWebview(webview: vscode.Webview): string {
-		// Local path to main script run in the webview
-		const scriptPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js');
+        webviewView.webview.onDidReceiveMessage(async (data) => {
+            switch (data.type) {
+                case "create-user":
+                    let options: vscode.InputBoxOptions = {
+                        prompt: "Enter the name of the new user",
+                        placeHolder: "Name of new user"
+                    };
 
-		// And the uri we use to load this script in the webview
-		const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
+                    vscode.window.showInputBox(options).then(value => {
+                        if (!value) {
+                            vscode.window.showWarningMessage("No user name given, no user created");
+                        }
+                    });
+                    break;
+                case "delete-user":
+                    vscode.window.showInformationMessage("Do you really want to delete user " + data.username + "?", "Yes", "No").then(answer => {
+                        if (answer === "Yes") {
+                            vscode.window.showInformationMessage("User was deleted");
+                        } else if (answer === "No") {
+                            vscode.window.showInformationMessage("User wasn't deleted!");
+                        }
+                    });
+            }
+        });
+    }
 
-		// Local path to css styles
-		const styleResetPath = vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css');
-		const stylesPathVSCodePath = vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css');
-		const stylesPathMainPath = vscode.Uri.joinPath(this._extensionUri, 'media', 'style.css');
+    public revive(panel: vscode.WebviewView) {
+        this._view = panel;
+    }
 
-		// Local path to svg files
-		const svgPathPlusIcon = vscode.Uri.joinPath(this._extensionUri, 'media', 'plus-svgrepo-com.svg');
-		const svgPathMinusIcon = vscode.Uri.joinPath(this._extensionUri, 'media', 'minus-svgrepo-com.svg');
+    /**
+     * Creates the html for the webview
+     * @param webview WebView to restore
+     * @returns the created html
+     */
+    private _getHtmlForWebview(webview: vscode.Webview): string {
+        // Local path to main script run in the webview
+        const scriptPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js');
 
-		// Uri to load styles into webview
-		const stylesResetUri = webview.asWebviewUri(styleResetPath);
-		const stylesVSCodeUri = webview.asWebviewUri(stylesPathVSCodePath);
-		const stylesMainUri = webview.asWebviewUri(stylesPathMainPath);
+        // And the uri we use to load this script in the webview
+        const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
 
-		// Uri to load svg into webview
-		const svgPlusIcon = webview.asWebviewUri(svgPathPlusIcon);
-		const svgMinusIcon = webview.asWebviewUri(svgPathMinusIcon);
+        // Local path to css styles
+        const styleResetPath = vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css');
+        const stylesPathVSCodePath = vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css');
+        const stylesPathMainPath = vscode.Uri.joinPath(this._extensionUri, 'media', 'style.css');
 
-		// Use a nonce to only allow specific scripts to be run
-		const nonce = getNonce();
+        // Local path to svg files
+        const svgPathPlusIcon = vscode.Uri.joinPath(this._extensionUri, 'media', 'plus-svgrepo-com.svg');
+        const svgPathMinusIcon = vscode.Uri.joinPath(this._extensionUri, 'media', 'minus-svgrepo-com.svg');
 
-		return `<!DOCTYPE html>
+        // Uri to load styles into webview
+        const stylesResetUri = webview.asWebviewUri(styleResetPath);
+        const stylesVSCodeUri = webview.asWebviewUri(stylesPathVSCodePath);
+        const stylesMainUri = webview.asWebviewUri(stylesPathMainPath);
+
+        // Uri to load svg into webview
+        const svgPlusIcon = webview.asWebviewUri(svgPathPlusIcon);
+        const svgMinusIcon = webview.asWebviewUri(svgPathMinusIcon);
+
+        // Use a nonce to only allow specific scripts to be run
+        const nonce = getNonce();
+
+        return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
@@ -95,8 +114,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 						<option value="audi">User4</option>
 					</select>
 					<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-					<img src="${svgPlusIcon}" onclick=""></img>
-					<img src="${svgMinusIcon}"></img>
+					<img id="create-user" src="${svgPlusIcon}"></img>
+					<img id="delete-user" src="${svgMinusIcon}"></img>
 				</div>
 
 				<div id="lines-of-code-counter"></div>
@@ -105,5 +124,5 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 				</script>
 			</body>
 			</html>`;
-	}
+    }
 }
