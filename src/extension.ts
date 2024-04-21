@@ -1,6 +1,4 @@
-import { Sign } from 'crypto';
 import * as vscode from 'vscode';
-import { getNonce } from './getNonce';
 import { SidebarProvider } from './SidebarProvider';
 
 const cats = {

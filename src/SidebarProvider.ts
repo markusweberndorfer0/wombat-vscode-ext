@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { getNonce } from './getNonce';
 
+/**
+ * Provides the sidebar for the app
+ */
 export class SidebarProvider implements vscode.WebviewViewProvider {
 	_view?: vscode.WebviewView;
 	_doc?: vscode.TextDocument;
