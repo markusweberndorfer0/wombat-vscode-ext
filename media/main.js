@@ -3,13 +3,21 @@
 
 const vscode = acquireVsCodeApi();
 
-getUsers();
+loadData();
+
+/**
+ * Loads the complete data
+ */
+function loadData() {
+    getUsers();
+}
 
 /**
  * Sets the users in the select menu
  * @param {any} usersData the user data 
  */
 function setUsers(usersData) {
+    console.log("called");
     let userSelectHTML = /** @type {HTMLElement} */ document.querySelector('#user-select');
 
     userSelectHTML.innerHTML = "";
@@ -103,6 +111,9 @@ document.querySelector("#delete-project")?.addEventListener("click", () => {
 window.addEventListener('message', event => {
     const message = event.data; // The json data that the extension sent
     switch (message.command) {
+        case 'reload-data':
+            loadData();
+            break;
         case 'users':
             setUsers(JSON.parse(message.data));
             break;

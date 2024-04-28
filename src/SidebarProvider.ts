@@ -30,12 +30,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         placeHolder: "Name of new user"
                     };
 
-                    vscode.window.showInputBox(createUserOptions).then(value => {
+                    vscode.window.showInputBox(createUserOptions).then((value) => {
                         if (!value) {
                             vscode.window.showErrorMessage("No user name given, no user created");
                         } else {
                             APIRequests.createUser(value);
-                            webviewView.webview.postMessage({ command: "reloadData" });
+                            webviewView.webview.postMessage({ command: "reload-data" });
                             vscode.window.showInformationMessage("User " + value + " was created!");
                         }
                     });
@@ -44,7 +44,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     vscode.window.showInformationMessage("Do you really want to delete user " + data.username + "?", "Yes", "No").then(answer => {
                         if (answer === "Yes") {
                             APIRequests.deleteUser(data.username);
-                            webviewView.webview.postMessage({ command: "reloadData" });
+                            webviewView.webview.postMessage({ command: "reload-data" });
                             vscode.window.showInformationMessage("User was deleted");
                         } else if (answer === "No") {
                             vscode.window.showInformationMessage("User wasn't deleted!");
