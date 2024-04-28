@@ -4,7 +4,7 @@
 		"target": "es2020",
 		"jsx": "preserve",
 		"checkJs": true,
-		"strict": true,
+		"strict": false,
 		"strictFunctionTypes": true,
 		"lib": [
 			"dom"

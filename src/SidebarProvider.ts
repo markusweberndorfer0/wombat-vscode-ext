@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
+import { APIRequests } from "./APIRequests";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
@@ -32,12 +33,18 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     vscode.window.showInputBox(createUserOptions).then(value => {
                         if (!value) {
                             vscode.window.showErrorMessage("No user name given, no user created");
+                        } else {
+                            APIRequests.createUser(value);
+                            webviewView.webview.postMessage({ command: "reloadData" });
+                            vscode.window.showInformationMessage("User " + value + " was created!");
                         }
                     });
                     break;
                 case "delete-user":
                     vscode.window.showInformationMessage("Do you really want to delete user " + data.username + "?", "Yes", "No").then(answer => {
                         if (answer === "Yes") {
+                            APIRequests.deleteUser(data.username);
+                            webviewView.webview.postMessage({ command: "reloadData" });
                             vscode.window.showInformationMessage("User was deleted");
                         } else if (answer === "No") {
                             vscode.window.showInformationMessage("User wasn't deleted!");
@@ -64,6 +71,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             vscode.window.showInformationMessage("Project wasn't deleted!");
                         }
                     });
+                    break;
+                case "get-users":
+                    let getUsersData = JSON.stringify(await APIRequests.getUsers());
+                    webviewView.webview.postMessage({ command: "users", data: getUsersData });
                     break;
             }
         });
@@ -130,10 +141,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
 				<div class="select">
 					<select id="user-select">
-						<option value="User1">User1</option>
-						<option value="User2">User2</option>
-						<option value="User3">User3</option>
-						<option value="User4">User4</option>
 					</select>
 					<img id="create-user" src="${svgPlusIcon}"></img>
 					<img id="delete-user" src="${svgMinusIcon}"></img>

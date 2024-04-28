@@ -3,6 +3,31 @@
 
 const vscode = acquireVsCodeApi();
 
+getUsers();
+
+/**
+ * Sets the users in the select menu
+ * @param {any} usersData the user data 
+ */
+function setUsers(usersData) {
+    let userSelectHTML = /** @type {HTMLElement} */ document.querySelector('#user-select');
+
+    userSelectHTML.innerHTML = "";
+
+    for (const username in usersData) {
+        userSelectHTML.innerHTML += "<option value=\"" + username + "\">" + username + "</option>";
+    }
+}
+
+/**
+ * Gets the users of the wombat
+ */
+function getUsers() {
+    vscode.postMessage({
+        type: "get-users"
+    });
+}
+
 /**
  * Sends an api request to create user
  */
@@ -49,22 +74,22 @@ function deleteProject(username, projectname) {
 
 
 // Add event listeners
-document.getElementById("create-user")?.addEventListener("click", createUser);
-document.getElementById("delete-user")?.addEventListener("click", () => {
+document.querySelector("#create-user")?.addEventListener("click", createUser);
+document.querySelector("#delete-user")?.addEventListener("click", () => {
     // @ts-ignore
-    let username = document.getElementById("user-select")?.value;
+    let username = /** @type {HTMLElement} */ document.querySelector("#user-select")?.value;
     if (username !== null) {
         deleteUser(username);
     }
 });
-document.getElementById("create-project")?.addEventListener("click", () => {
+document.querySelector("#create-project")?.addEventListener("click", () => {
     // @ts-ignore
-    let username = document.getElementById("user-select")?.value;
+    let username = /** @type {HTMLElement} */ document.querySelector("#user-select")?.value;
     if (username !== null) {
         createProject(username);
     }
 });
-document.getElementById("delete-project")?.addEventListener("click", () => {
+document.querySelector("#delete-project")?.addEventListener("click", () => {
     // @ts-ignore
     let username = document.getElementById("user-select")?.value;
     // @ts-ignore
@@ -75,13 +100,11 @@ document.getElementById("delete-project")?.addEventListener("click", () => {
 });
 
 
-// Handle messages sent from the extension to the webview
-/* window.addEventListener('message', event => {
+window.addEventListener('message', event => {
     const message = event.data; // The json data that the extension sent
     switch (message.command) {
-        case 'refactor':
-            currentCount = Math.ceil(currentCount * 0.5);
-            counter.textContent = `${currentCount}`;
+        case 'users':
+            setUsers(JSON.parse(message.data));
             break;
     }
-}); */
+});
