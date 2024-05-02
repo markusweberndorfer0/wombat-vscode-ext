@@ -1,51 +1,51 @@
 .heading {
-	font-size: 14px;
-	text-transform: uppercase;
-	font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
 .heading-project-files {
-	font-size: 14px;
-	text-transform: uppercase;
-	font-weight: 500;
-	margin-left: 5px;
+    font-size: 14px;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-left: 5px;
 }
 
 .project-files {
-	font-size: 14px;
-	text-transform: none;
-	font-weight: 400;
-	padding: 2px;
-	margin-left: 10px;
+    font-size: 14px;
+    text-transform: none;
+    font-weight: 400;
+    padding: 2px;
+    margin-left: 10px;
 }
 
 .project-files:hover {
-	background-color: var(--vscode-editorStickyScrollHover-background);
-	cursor: pointer;
+    background-color: var(--vscode-editorStickyScrollHover-background);
+    cursor: pointer;
 }
 
 .mt-15 {
-	margin-top: 15px;
+    margin-top: 15px;
 }
 
 img:hover {
-	cursor: pointer;
+    cursor: pointer;
 }
 
 select {
-	font-size: 13px;
-	width: 100%;
-	background-color: #313131;
-	border-radius: 0;
-	color: white;
+    font-size: 13px;
+    width: 100%;
+    background-color: #313131;
+    border-radius: 0;
+    color: white;
 }
 
 .select {
-	display: flex;
-	flex-direction: row;
-	justify-content: space-around;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
 }
 
 .mr-4 {
-	margin-right: 4px;
+    margin-right: 4px;
 }

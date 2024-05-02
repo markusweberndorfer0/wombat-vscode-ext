@@ -1,7 +1,16 @@
 // This script will be run within the webview itself
 // It cannot access the main VS Code APIs directly.
-
 const vscode = acquireVsCodeApi();
+
+// get HTML elements
+const userSelect = document.querySelector('#user-select');
+const projectSelect = document.querySelector('#project-select');
+const createUserButton = document.querySelector('#create-user');
+const deleteUserButton = document.querySelector('#delete-user');
+const createProjectButton = document.querySelector('#create-project');
+const deleteProjectButton = document.querySelector('#delete-project');
+
+let currentUsername;
 
 loadData();
 
@@ -10,20 +19,21 @@ loadData();
  */
 function loadData() {
     getUsers();
+    getProjects();
+    // @ts-ignore
+    currentUsername = document.querySelector('#user-select')?.value;
 }
 
 /**
  * Sets the users in the select menu
- * @param {any} usersData the user data 
+ * @param {any} usersData the user data
  */
 function setUsers(usersData) {
-    console.log("called");
-    let userSelectHTML = /** @type {HTMLElement} */ document.querySelector('#user-select');
-
-    userSelectHTML.innerHTML = "";
+    userSelect.innerHTML = '';
 
     for (const username in usersData) {
-        userSelectHTML.innerHTML += "<option value=\"" + username + "\">" + username + "</option>";
+        userSelect.innerHTML +=
+            '<option value="' + username + '">' + username + '</option>';
     }
 }
 
@@ -32,7 +42,18 @@ function setUsers(usersData) {
  */
 function getUsers() {
     vscode.postMessage({
-        type: "get-users"
+        type: 'get-users',
+    });
+}
+
+/**
+ * Gets the projects to a user of the wombat
+ */
+function getProjects() {
+    vscode.postMessage({
+        type: 'get-projects',
+        // @ts-ignore
+        username: userSelect?.value,
     });
 }
 
@@ -41,18 +62,18 @@ function getUsers() {
  */
 function createUser() {
     vscode.postMessage({
-        type: "create-user"
+        type: 'create-user',
     });
 }
 
 /**
  * Sends an api request to delete user
- * @param {string} username 
+ * @param {string} username
  */
 function deleteUser(username) {
     vscode.postMessage({
-        type: "delete-user",
-        username
+        type: 'delete-user',
+        username,
     });
 }
 
@@ -62,53 +83,54 @@ function deleteUser(username) {
  */
 function createProject(username) {
     vscode.postMessage({
-        type: "create-project",
-        username
+        type: 'create-project',
+        username,
     });
 }
 
 /**
  * Sends an api request to delete project
- * @param {string} username 
- * @param {string} projectname 
+ * @param {string} username
+ * @param {string} projectname
  */
 function deleteProject(username, projectname) {
     vscode.postMessage({
-        type: "delete-project",
+        type: 'delete-project',
         username,
-        projectname
+        projectname,
     });
 }
 
-
 // Add event listeners
-document.querySelector("#create-user")?.addEventListener("click", createUser);
-document.querySelector("#delete-user")?.addEventListener("click", () => {
+createUserButton.addEventListener('click', createUser);
+deleteUserButton.addEventListener('click', () => {
     // @ts-ignore
-    let username = /** @type {HTMLElement} */ document.querySelector("#user-select")?.value;
+    let username = userSelect.value;
+
     if (username !== null) {
         deleteUser(username);
     }
 });
-document.querySelector("#create-project")?.addEventListener("click", () => {
+createProjectButton.addEventListener('click', () => {
     // @ts-ignore
-    let username = /** @type {HTMLElement} */ document.querySelector("#user-select")?.value;
+    let username = userSelect.value;
+
     if (username !== null) {
         createProject(username);
     }
 });
-document.querySelector("#delete-project")?.addEventListener("click", () => {
+deleteProjectButton.addEventListener('click', () => {
     // @ts-ignore
-    let username = document.getElementById("user-select")?.value;
+    let username = userSelect.value;
     // @ts-ignore
-    let projectname = document.getElementById("project-select")?.value;
+    let projectname = projectSelect.value;
+
     if (username !== null && projectname !== null) {
         deleteProject(username, projectname);
     }
 });
 
-
-window.addEventListener('message', event => {
+window.addEventListener('message', (event) => {
     const message = event.data; // The json data that the extension sent
     switch (message.command) {
         case 'reload-data':
