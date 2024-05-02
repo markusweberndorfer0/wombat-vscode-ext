@@ -42,5 +42,16 @@ export class APIRequests {
         }
     }
 
-    public static async getProjects(username: string) {}
+    public static async getProjects(username: string) {
+        let apiUrl: string =
+            'http://192.168.125.1:8888/api/projects/' + username;
+
+        console.log('Request to ' + apiUrl + '\nUsername is: ' + username);
+
+        let apiResult: any = await axios.get(apiUrl);
+        if (apiResult.status === 200) {
+            return apiResult.data;
+        }
+        throw new Error('Got response code ' + apiResult.status);
+    }
 }

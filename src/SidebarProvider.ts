@@ -7,7 +7,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
     private readonly _extensionUri: vscode.Uri;
-    private currentProjectData: JSON;
 
     constructor(_extensionUri: vscode.Uri) {
         this._extensionUri = _extensionUri;
@@ -43,9 +42,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 );
                             } else {
                                 APIRequests.createUser(value);
-                                webviewView.webview.postMessage({
+                                /* webviewView.webview.postMessage({
                                     command: 'reload-data',
-                                });
+                                }); */
                                 vscode.window.showInformationMessage(
                                     'User ' + value + ' was created!'
                                 );
@@ -64,9 +63,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         .then((answer) => {
                             if (answer === 'Yes') {
                                 APIRequests.deleteUser(data.username);
-                                webviewView.webview.postMessage({
+                                /* webviewView.webview.postMessage({
                                     command: 'reload-data',
-                                });
+                                }); */
                                 vscode.window.showInformationMessage(
                                     'User was deleted'
                                 );
@@ -124,11 +123,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     });
                     break;
                 case 'get-projects':
-                    this.currentProjectData = await APIRequests.getProjects(
-                        data.username
+                    console.log(data.username);
+                    let getProjectData = JSON.stringify(
+                        await APIRequests.getProjects(data.username)
                     );
-
-                //this.currentProjectData = await APIRequests.getProjects(username)
+                    webviewView.webview.postMessage({
+                        command: 'projects',
+                        data: getProjectData,
+                    });
+                    break;
             }
         });
     }
