@@ -42,11 +42,36 @@ export class APIRequests {
         }
     }
 
+    /**
+     * Gets all the projects of a wombat user
+     * @param username
+     * @returns The data of all the projects
+     */
     public static async getProjects(username: string) {
         let apiUrl: string =
             'http://192.168.125.1:8888/api/projects/' + username;
 
-        console.log('Request to ' + apiUrl + '\nUsername is: ' + username);
+        let apiResult: any = await axios.get(apiUrl);
+        if (apiResult.status === 200) {
+            return apiResult.data;
+        }
+        throw new Error('Got response code ' + apiResult.status);
+    }
+
+    /**
+     * Gets the project information about a single project on the wombat
+     * @param username
+     * @param projectname
+     * @returns The project data
+     */
+    public static async getProject(username: string, projectname: string) {
+        let apiUrl: string =
+            'http://192.168.125.1:8888/api/projects/' +
+            username +
+            '/' +
+            projectname;
+
+        console.log(apiUrl);
 
         let apiResult: any = await axios.get(apiUrl);
         if (apiResult.status === 200) {

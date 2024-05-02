@@ -123,12 +123,23 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     });
                     break;
                 case 'get-projects':
-                    console.log(data.username);
-                    let getProjectData = JSON.stringify(
+                    let getProjectsData = JSON.stringify(
                         await APIRequests.getProjects(data.username)
                     );
                     webviewView.webview.postMessage({
                         command: 'projects',
+                        data: getProjectsData,
+                    });
+                    break;
+                case 'get-project':
+                    let getProjectData = JSON.stringify(
+                        await APIRequests.getProject(
+                            data.username,
+                            data.projectname
+                        )
+                    );
+                    webviewView.webview.postMessage({
+                        command: 'project',
                         data: getProjectData,
                     });
                     break;
@@ -230,33 +241,32 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                 <div class="select">
 					<select id="project-select">
-						<option value="Proj 1">Proj 1</option>
-						<option value="Proj 2">Proj 2</option>
-						<option value="Proj 3">Proj 3</option>
-						<option value="Proj 4">Proj 4</option>
 					</select>
 					<img id="create-project" src="${svgPlusIcon}"></img>
 					<img id="delete-project" src="${svgMinusIcon}"></img>
 				</div>
                 
                 <div class="heading mt-15">Project files</div>
-                <div class="heading-project-files">Include</div>
+
+                <!--<div class="heading-project-files">Include</div>
                 <div class="project-files">test.h</div>
                 <div class="project-files">test2.h</div>
                 <div class="project-files">test3.h</div>
-                <div class="project-files">test4.h</div>
+                <div class="project-files">test4.h</div>-->
 
-                <div class="heading-project-files" style="margin-top: 5px;">Source</div>
-                <div class="project-files">main.c</div>
-                <div class="project-files">main2.c</div>
-                <div class="project-files">main3.c</div>
-                <div class="project-files">main4.c</div>
+                <div class="heading-project-files">Source</div>
+                <div id="src-project-files">
+                    <div class="project-files">main.c</div>
+                    <div class="project-files">main2.c</div>
+                    <div class="project-files">main3.c</div>
+                    <div class="project-files">main4.c</div>
+                </div>
 
-                <div class="heading-project-files" style="margin-top: 5px;">Data</div>
+                <!--<div class="heading-project-files">Data</div>
                 <div class="project-files">data.dat</div>
                 <div class="project-files">data2.dat</div>
                 <div class="project-files">data3.dat</div>
-                <div class="project-files">data4.dat</div>
+                <div class="project-files">data4.dat</div>-->
 
 				<script nonce="${nonce}" src="${scriptUri}">
 				</script>

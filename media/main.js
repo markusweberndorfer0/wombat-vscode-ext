@@ -9,9 +9,10 @@ const createUserButton = document.querySelector('#create-user');
 const deleteUserButton = document.querySelector('#delete-user');
 const createProjectButton = document.querySelector('#create-project');
 const deleteProjectButton = document.querySelector('#delete-project');
+const srcProjectFiles = document.querySelector('#src-project-files');
 
 // data
-let usersData, projectsData, currentUsername, currentProjectIndex;
+let usersData, projectsData, projectData, currentUsername, currentProjectname;
 
 // load data on load/reload
 loadData();
@@ -20,18 +21,19 @@ loadData();
  * Loads the complete data
  */
 async function loadData() {
-    console.log('triggered');
-    await configureUserDataPromise();
+    await configureUsersDataPromise();
     // @ts-ignore
     currentUsername = userSelect.value;
+    await configureProjectsDataPromise();
+    // @ts-ignore
+    currentProjectname = projectSelect.value;
     await configureProjectDataPromise();
 }
 
 /**
  * Sets the users in the select menu
- * @param {any} usersData the user data
  */
-function setUsers(usersData) {
+function setUsers() {
     userSelect.innerHTML = '';
 
     for (const username in usersData) {
@@ -40,7 +42,7 @@ function setUsers(usersData) {
     }
 }
 
-function setProjects(projectsData) {
+function setProjects() {
     projectSelect.innerHTML = '';
 
     for (let i = 0; i < projectsData.projects.length; i++) {
@@ -50,6 +52,18 @@ function setProjects(projectsData) {
             '">' +
             projectsData.projects[i].name +
             '</option>';
+    }
+}
+
+function setProjectFiles() {
+    // src files
+    srcProjectFiles.innerHTML = '';
+
+    for (let i = 0; i < projectData.source_files.length; i++) {
+        srcProjectFiles.innerHTML +=
+            '<div class="project-files">' +
+            projectData.source_files[i].name +
+            '</div>';
     }
 }
 
@@ -65,10 +79,18 @@ function getUsers() {
 /**
  * Gets the projects to a user of the wombat
  */
-function getProjects(currentUsername) {
+function getProjects() {
     vscode.postMessage({
         type: 'get-projects',
         username: currentUsername,
+    });
+}
+
+function getProject() {
+    vscode.postMessage({
+        type: 'get-project',
+        username: currentUsername,
+        projectname: currentProjectname,
     });
 }
 
@@ -83,36 +105,32 @@ function createUser() {
 
 /**
  * Sends an api request to delete user
- * @param {string} username
  */
-function deleteUser(username) {
+function deleteUser() {
     vscode.postMessage({
         type: 'delete-user',
-        username,
+        username: currentUsername,
     });
 }
 
 /**
  * Sends an api request to create project
- * @param {string} username
  */
-function createProject(username) {
+function createProject() {
     vscode.postMessage({
         type: 'create-project',
-        username,
+        username: currentUsername,
     });
 }
 
 /**
  * Sends an api request to delete project
- * @param {string} username
- * @param {string} projectname
  */
-function deleteProject(username, projectname) {
+function deleteProject() {
     vscode.postMessage({
         type: 'delete-project',
-        username,
-        projectname,
+        username: currentUsername,
+        projectname: currentProjectname,
     });
 }
 
@@ -123,7 +141,7 @@ deleteUserButton.addEventListener('click', () => {
     currentUsername = userSelect.value;
 
     if (currentUsername !== null) {
-        deleteUser(currentUsername);
+        deleteUser();
     }
 });
 createProjectButton.addEventListener('click', () => {
@@ -131,7 +149,7 @@ createProjectButton.addEventListener('click', () => {
     currentUsername = userSelect.value;
 
     if (currentUsername !== null) {
-        createProject(currentUsername);
+        createProject();
     }
 });
 deleteProjectButton.addEventListener('click', () => {
@@ -141,44 +159,52 @@ deleteProjectButton.addEventListener('click', () => {
     currentUsername = projectSelect.value;
 
     if (currentUsername !== null && currentUsername !== null) {
-        deleteProject(currentUsername, currentUsername);
+        deleteProject();
     }
 });
 userSelect.addEventListener('change', async () => {
     // @ts-ignore
     currentUsername = userSelect.value;
+    await configureProjectsDataPromise();
+    // @ts-ignore
+    currentProjectname = projectSelect.value;
     await configureProjectDataPromise();
 });
-projectSelect.addEventListener('change', () => {
+projectSelect.addEventListener('change', async () => {
     // @ts-ignore
-    currentProjectIndex = projectSelect.value;
+    currentProjectname = projectSelect.value;
+    await configureProjectDataPromise();
 });
 
 window.addEventListener('message', (event) => {
     const message = event.data; // The json data that the extension sent
     switch (message.command) {
         case 'reload-data':
-            loadData();
-            break;
-        case 'users':
-            usersData = JSON.parse(message.data);
-            setUsers(usersData);
-            break;
-        case 'projects':
-            projectsData = JSON.parse(message.data);
-            setProjects(projectsData);
+            //loadData();
             break;
     }
 });
 
-function configureUserDataPromise() {
+function configureUsersDataPromise() {
     return new Promise((resolve) => {
         getUsers();
         window.addEventListener('message', (event) => {
-            const message = event.data;
             if (event.data.command === 'users') {
                 usersData = JSON.parse(event.data.data);
-                setUsers(usersData);
+                setUsers();
+                resolve();
+            }
+        });
+    });
+}
+
+function configureProjectsDataPromise() {
+    return new Promise((resolve) => {
+        getProjects();
+        window.addEventListener('message', (event) => {
+            if (event.data.command === 'projects') {
+                projectsData = JSON.parse(event.data.data);
+                setProjects();
                 resolve();
             }
         });
@@ -187,11 +213,13 @@ function configureUserDataPromise() {
 
 function configureProjectDataPromise() {
     return new Promise((resolve) => {
-        getProjects(currentUsername);
+        getProject();
         window.addEventListener('message', (event) => {
-            projectsData = JSON.parse(event.data.data);
-            setUsers(usersData);
-            resolve();
+            if (event.data.command === 'project') {
+                projectData = JSON.parse(event.data.data);
+                setProjectFiles();
+                resolve();
+            }
         });
     });
 }
