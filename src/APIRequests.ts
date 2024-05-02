@@ -92,4 +92,17 @@ export class APIRequests {
         }
         throw new Error('Got response code ' + apiResult.status);
     }
+
+    public static async putFile(filepath: string, encodedContent: string) {
+        let apiUrl: string = 'http://192.168.125.1:8888/api/fs' + filepath;
+        let apiData: any = {
+            content: encodedContent,
+            encoding: 'ascii',
+        };
+
+        let apiResult: any = await axios.put(apiUrl, apiData);
+        if (apiResult.status !== 204) {
+            throw new Error('Got response code ' + apiResult.status);
+        }
+    }
 }

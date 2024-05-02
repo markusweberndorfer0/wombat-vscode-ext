@@ -21,7 +21,6 @@ loadData();
  * Loads the complete data
  */
 async function loadData() {
-    openFile('/home/kipr/Documents/KISS/Default%20User/test/src/main.c');
     await configureUsersDataPromise();
     // @ts-ignore
     currentUsername = userSelect.value;

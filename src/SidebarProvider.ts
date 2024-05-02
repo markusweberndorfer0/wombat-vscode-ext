@@ -3,6 +3,8 @@ import { getNonce } from './getNonce';
 import { APIRequests } from './APIRequests';
 import { json } from 'stream/consumers';
 import os from 'os';
+import fs from 'fs';
+import { get } from 'axios';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
@@ -145,13 +147,43 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     });
                     break;
                 case 'open-file':
-                    let getFileData = APIRequests.getFile(data.filepath);
-                    let tempDir =
+                    let getFileData: any = await APIRequests.getFile(
+                        data.filepath
+                    );
+                    let fileDir: string =
                         os.tmpdir() +
                         '/vscode_wombat_ext/' +
                         data.username +
                         '/' +
                         data.projectname;
+
+                    if (!fs.existsSync(fileDir)) {
+                        fs.mkdirSync(fileDir, { recursive: true });
+                    }
+
+                    let codeFilePath: string = fileDir + '/' + getFileData.name;
+                    let infoFilePath: string =
+                        fileDir + '/' + getFileData.name + '.info';
+
+                    let decodedFileContent: string = atob(getFileData.content);
+                    fs.writeFile(codeFilePath, decodedFileContent, (err) => {
+                        if (err) {
+                            console.error(err);
+                        }
+                    });
+
+                    fs.writeFile(infoFilePath, getFileData.path, (err) => {
+                        if (err) {
+                            console.error(err);
+                        }
+                    });
+
+                    await vscode.window.showTextDocument(
+                        await vscode.workspace.openTextDocument(
+                            vscode.Uri.file(codeFilePath)
+                        ),
+                        vscode.ViewColumn.One
+                    );
 
                     break;
             }
@@ -267,10 +299,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                 <div class="heading-project-files">Source</div>
                 <div id="src-project-files">
-                    <div class="project-files">main.c</div>
-                    <div class="project-files">main2.c</div>
-                    <div class="project-files">main3.c</div>
-                    <div class="project-files">main4.c</div>
                 </div>
 
                 <!--<div class="heading-project-files">Data</div>
@@ -278,8 +306,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 <div class="project-files">data2.dat</div>
                 <div class="project-files">data3.dat</div>
                 <div class="project-files">data4.dat</div>-->
-
-                <h1 path="test" onclick="openFilePromise()" >test</h1>
 
 				<script nonce="${nonce}" src="${scriptUri}">
 				</script>
