@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getNonce } from './getNonce';
 import { APIRequests } from './APIRequests';
 import { json } from 'stream/consumers';
+import os from 'os';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
@@ -142,6 +143,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         command: 'project',
                         data: getProjectData,
                     });
+                    break;
+                case 'open-file':
+                    let getFileData = APIRequests.getFile(data.filepath);
+                    let tempDir =
+                        os.tmpdir() +
+                        '/vscode_wombat_ext/' +
+                        data.username +
+                        '/' +
+                        data.projectname;
+
                     break;
             }
         });

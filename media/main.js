@@ -12,12 +12,7 @@ const deleteProjectButton = document.querySelector('#delete-project');
 const srcProjectFiles = document.querySelector('#src-project-files');
 
 // data
-let usersData,
-    projectsData,
-    projectData,
-    currentUsername,
-    currentProjectname,
-    nonce;
+let usersData, projectsData, projectData, currentUsername, currentProjectname;
 
 // load data on load/reload
 loadData();
@@ -26,6 +21,7 @@ loadData();
  * Loads the complete data
  */
 async function loadData() {
+    openFile('/home/kipr/Documents/KISS/Default%20User/test/src/main.c');
     await configureUsersDataPromise();
     // @ts-ignore
     currentUsername = userSelect.value;
@@ -70,14 +66,9 @@ function setProjectFiles() {
 
     if (projectData !== null) {
         for (let i = 0; i < projectData.source_files.length; i++) {
-            srcProjectFiles.innerHTML +=
-                '<div class="project-files" onclick="openFilePromise(' +
-                projectData.source_files[i].path +
-                ')" \'nonce-' +
-                nonce +
-                "'>" +
-                projectData.source_files[i].name +
-                '</div>';
+            srcProjectFiles.innerHTML += `<div class="project-files" onclick="openFilePromise('${projectData.source_files[i].path}')" value="${projectData.source_files[i].name}">
+            ${projectData.source_files[i].name}
+            </div>`;
         }
     }
 }
@@ -88,6 +79,19 @@ function setProjectFiles() {
 function getUsers() {
     vscode.postMessage({
         type: 'get-users',
+    });
+}
+
+/**
+ * Sends a signal to open the file in the editor
+ * @param {string} filepath
+ */
+function openFile(filepath) {
+    vscode.postMessage({
+        type: 'open-file',
+        filepath,
+        username: currentUsername,
+        projectname: currentProjectname,
     });
 }
 
@@ -244,7 +248,12 @@ function configureProjectDataPromise() {
 
 function openFilePromise(filepath) {
     return new Promise((resolve) => {
-        console.log(filepath);
-        resolve();
+        openFile(filepath);
+        window.addEventListener('message', (event) => {
+            if (event.data.command === 'open-file') {
+                console.log('File was opened');
+                resolve();
+            }
+        });
     });
 }

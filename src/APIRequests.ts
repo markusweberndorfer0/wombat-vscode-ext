@@ -71,7 +71,20 @@ export class APIRequests {
             '/' +
             projectname;
 
-        console.log(apiUrl);
+        let apiResult: any = await axios.get(apiUrl);
+        if (apiResult.status === 200) {
+            return apiResult.data;
+        }
+        throw new Error('Got response code ' + apiResult.status);
+    }
+
+    /**
+     * Get a file from the wombat api
+     * @param filepath
+     * @returns the file data
+     */
+    public static async getFile(filepath: string) {
+        let apiUrl: string = 'http://192.168.125.1:8888/api/fs' + filepath;
 
         let apiResult: any = await axios.get(apiUrl);
         if (apiResult.status === 200) {
