@@ -12,7 +12,12 @@ const deleteProjectButton = document.querySelector('#delete-project');
 const srcProjectFiles = document.querySelector('#src-project-files');
 
 // data
-let usersData, projectsData, projectData, currentUsername, currentProjectname;
+let usersData,
+    projectsData,
+    projectData,
+    currentUsername,
+    currentProjectname,
+    nonce;
 
 // load data on load/reload
 loadData();
@@ -36,22 +41,26 @@ async function loadData() {
 function setUsers() {
     userSelect.innerHTML = '';
 
-    for (const username in usersData) {
-        userSelect.innerHTML +=
-            '<option value="' + username + '">' + username + '</option>';
+    if (usersData !== null) {
+        for (const username in usersData) {
+            userSelect.innerHTML +=
+                '<option value="' + username + '">' + username + '</option>';
+        }
     }
 }
 
 function setProjects() {
     projectSelect.innerHTML = '';
 
-    for (let i = 0; i < projectsData.projects.length; i++) {
-        projectSelect.innerHTML +=
-            '<option value"' +
-            projectsData.projects[i].name +
-            '">' +
-            projectsData.projects[i].name +
-            '</option>';
+    if (projectsData !== null) {
+        for (let i = 0; i < projectsData.projects.length; i++) {
+            projectSelect.innerHTML +=
+                '<option value"' +
+                projectsData.projects[i].name +
+                '">' +
+                projectsData.projects[i].name +
+                '</option>';
+        }
     }
 }
 
@@ -59,11 +68,17 @@ function setProjectFiles() {
     // src files
     srcProjectFiles.innerHTML = '';
 
-    for (let i = 0; i < projectData.source_files.length; i++) {
-        srcProjectFiles.innerHTML +=
-            '<div class="project-files">' +
-            projectData.source_files[i].name +
-            '</div>';
+    if (projectData !== null) {
+        for (let i = 0; i < projectData.source_files.length; i++) {
+            srcProjectFiles.innerHTML +=
+                '<div class="project-files" onclick="openFilePromise(' +
+                projectData.source_files[i].path +
+                ')" \'nonce-' +
+                nonce +
+                "'>" +
+                projectData.source_files[i].name +
+                '</div>';
+        }
     }
 }
 
@@ -187,6 +202,7 @@ window.addEventListener('message', (event) => {
 
 function configureUsersDataPromise() {
     return new Promise((resolve) => {
+        usersData = null;
         getUsers();
         window.addEventListener('message', (event) => {
             if (event.data.command === 'users') {
@@ -200,6 +216,7 @@ function configureUsersDataPromise() {
 
 function configureProjectsDataPromise() {
     return new Promise((resolve) => {
+        projectsData = null;
         getProjects();
         window.addEventListener('message', (event) => {
             if (event.data.command === 'projects') {
@@ -213,6 +230,7 @@ function configureProjectsDataPromise() {
 
 function configureProjectDataPromise() {
     return new Promise((resolve) => {
+        projectData = null;
         getProject();
         window.addEventListener('message', (event) => {
             if (event.data.command === 'project') {
@@ -221,5 +239,12 @@ function configureProjectDataPromise() {
                 resolve();
             }
         });
+    });
+}
+
+function openFilePromise(filepath) {
+    return new Promise((resolve) => {
+        console.log(filepath);
+        resolve();
     });
 }

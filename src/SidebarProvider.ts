@@ -217,7 +217,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 					Use a content security policy to only allow loading images from https or from our extension directory,
 					and only allow scripts that have a specific nonce.
 				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'unsafe-inline';script-src-elem 'nonce-${nonce}';">
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -267,6 +267,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 <div class="project-files">data2.dat</div>
                 <div class="project-files">data3.dat</div>
                 <div class="project-files">data4.dat</div>-->
+
+                <h1 path="test" onclick="openFilePromise()" >test</h1>
 
 				<script nonce="${nonce}" src="${scriptUri}">
 				</script>
