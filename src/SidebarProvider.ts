@@ -166,17 +166,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         fileDir + '/' + getFileData.name + '.info';
 
                     let decodedFileContent: string = atob(getFileData.content);
-                    fs.writeFile(codeFilePath, decodedFileContent, (err) => {
-                        if (err) {
-                            console.error(err);
-                        }
-                    });
-
-                    fs.writeFile(infoFilePath, getFileData.path, (err) => {
-                        if (err) {
-                            console.error(err);
-                        }
-                    });
+                    fs.writeFileSync(codeFilePath, decodedFileContent);
+                    fs.writeFileSync(infoFilePath, getFileData.path);
 
                     await vscode.window.showTextDocument(
                         await vscode.workspace.openTextDocument(
