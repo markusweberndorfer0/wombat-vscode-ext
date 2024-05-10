@@ -65,7 +65,7 @@ function setProjectFiles() {
 
     if (projectData !== null) {
         for (let i = 0; i < projectData.source_files.length; i++) {
-            srcProjectFiles.innerHTML += `<div class="project-files" onclick="openFilePromise('${projectData.source_files[i].path}')" value="${projectData.source_files[i].name}">
+            srcProjectFiles.innerHTML += `<div class="project-files" onclick="openFile('${projectData.source_files[i].path}')" value="${projectData.source_files[i].name}">
             ${projectData.source_files[i].name}
             </div>`;
         }
@@ -114,20 +114,38 @@ function getProject() {
 
 /**
  * Sends an api request to create user
+ * @returns a promise which creates the user and refreshes the dataset
  */
 function createUser() {
-    vscode.postMessage({
-        type: 'create-user',
+    return new Promise((resolve) => {
+        vscode.postMessage({
+            type: 'create-user',
+        });
+        window.addEventListener('message', async (event) => {
+            if (event.data.command === 'create-user') {
+                await loadData();
+                resolve();
+            }
+        });
     });
 }
 
 /**
  * Sends an api request to delete user
+ * @returns a promise which creates the user and refreshes the dataset
  */
 function deleteUser() {
-    vscode.postMessage({
-        type: 'delete-user',
-        username: currentUsername,
+    return new Promise((resolve) => {
+        vscode.postMessage({
+            type: 'delete-user',
+            username: currentUsername,
+        });
+        window.addEventListener('message', async (event) => {
+            if (event.data.command === 'delete-user') {
+                await loadData();
+                resolve();
+            }
+        });
     });
 }
 
@@ -135,9 +153,17 @@ function deleteUser() {
  * Sends an api request to create project
  */
 function createProject() {
-    vscode.postMessage({
-        type: 'create-project',
-        username: currentUsername,
+    return new Promise((resolve) => {
+        vscode.postMessage({
+            type: 'create-project',
+            username: currentUsername,
+        });
+        window.addEventListener('message', async (event) => {
+            if (event.data.command === 'create-project') {
+                await loadData();
+                resolve();
+            }
+        });
     });
 }
 
@@ -162,12 +188,12 @@ deleteUserButton.addEventListener('click', () => {
         deleteUser();
     }
 });
-createProjectButton.addEventListener('click', () => {
+createProjectButton.addEventListener('click', async () => {
     // @ts-ignore
     currentUsername = userSelect.value;
 
     if (currentUsername !== null) {
-        createProject();
+        await createProject();
     }
 });
 deleteProjectButton.addEventListener('click', () => {
@@ -239,18 +265,6 @@ function configureProjectDataPromise() {
             if (event.data.command === 'project') {
                 projectData = JSON.parse(event.data.data);
                 setProjectFiles();
-                resolve();
-            }
-        });
-    });
-}
-
-function openFilePromise(filepath) {
-    return new Promise((resolve) => {
-        openFile(filepath);
-        window.addEventListener('message', (event) => {
-            if (event.data.command === 'open-file') {
-                console.log('File was opened');
                 resolve();
             }
         });

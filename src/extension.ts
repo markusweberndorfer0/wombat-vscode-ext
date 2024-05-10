@@ -14,6 +14,7 @@ export async function activate(context: vscode.ExtensionContext) {
         )
     );
 
+    // Autosave wombat files
     vscode.workspace.onDidSaveTextDocument(async (e) => {
         let savedFilepath: string = e.fileName;
         let wombatExtTempDirPath: string = os.tmpdir() + '/vscode_wombat_ext';
@@ -31,15 +32,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
             const encodedContent: string = btoa(fileContent);
 
-            await APIRequests.putFile(filepath, encodedContent);
+            try {
+                await APIRequests.putFile(filepath, encodedContent);
+                vscode.window.showInformationMessage('The file was saved ✅');
+            } catch (e) {
+                vscode.window.showErrorMessage(
+                    'There were errors saving the file -> ' + e
+                );
+            }
         }
     });
-
-    /* const doc = await vscode.workspace.openTextDocument(
-        vscode.Uri.file(
-            'D:\\_repos\\wombat-vscode-ext\\vsc-extension-quickstart.md'
-        )
-    );
-    console.log(doc);
-    await vscode.window.showTextDocument(doc, vscode.ViewColumn.One); */
 }

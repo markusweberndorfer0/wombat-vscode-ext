@@ -18,7 +18,7 @@ export class APIRequests {
      * Deletes a user on the wombat
      * @param username
      */
-    public static async deleteUser(username: string): Promise<void> {
+    public static async deleteUser(username: string) {
         let apiUrl: string =
             'http://192.168.125.1:8888/api/projects/users/' + username;
 
@@ -32,11 +32,64 @@ export class APIRequests {
      * Creates a new user on the wombat
      * @param username
      */
-    public static async createUser(username: string): Promise<void> {
+    public static async createUser(username: string) {
         let apiUrl: string =
             'http://192.168.125.1:8888/api/projects/users/' + username;
 
         let apiResult: any = await axios.put(apiUrl);
+        if (apiResult.status !== 204) {
+            throw new Error('Got response code ' + apiResult.status);
+        }
+    }
+
+    /**
+     * Creates a new project on the wombat
+     * @param language the programming language
+     * @param username
+     * @param projectname
+     */
+    public static async createProject(
+        language: string,
+        username: string,
+        projectname: string
+    ) {
+        let apiUrl: string = 'http://192.168.125.1:8888/api/projects';
+        let srcFileName: string = '';
+
+        if (language === 'C') {
+            srcFileName = 'main.c';
+        } else if (language === 'Python') {
+            srcFileName = 'main.py';
+        } else if (language === 'C++') {
+            srcFileName = 'main.cpp';
+        }
+
+        let apiData: any = {
+            language,
+            name: projectname,
+            src_file_name: srcFileName,
+            user: username,
+        };
+
+        let apiResult: any = await axios.post(apiUrl, apiData);
+        if (apiResult.status !== 201) {
+            throw new Error('Got response code ' + apiResult.status);
+        }
+    }
+
+    /**
+     * Deletes a project from the wombat
+     * @param username
+     * @param projectname
+     */
+    public static async deleteProject(username: string, projectname: string) {
+        let apiUrl: string =
+            'http://192.168.125.1:8888/api/projects/' +
+            username +
+            '/' +
+            projectname;
+
+        let apiResult: any = await axios.delete(apiUrl);
         if (apiResult.status !== 204) {
             throw new Error('Got response code ' + apiResult.status);
         }
