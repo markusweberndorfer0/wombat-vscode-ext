@@ -164,7 +164,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                         'Project was deleted'
                                     );
                                 } catch (e) {
-                                    console.log(e);
                                     vscode.window.showErrorMessage(
                                         'Error while trying to delete project ' +
                                             e
@@ -212,15 +211,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     });
                     break;
                 case 'open-file':
+                    let username: string = data.username;
+                    let projectname: string = data.projectname;
+
                     let getFileData: any = await APIRequests.getFile(
                         data.filepath
                     );
+
                     let fileDir: string =
                         os.tmpdir() +
                         '/vscode_wombat_ext/' +
-                        data.username +
+                        username +
                         '/' +
-                        data.projectname;
+                        projectname;
 
                     if (!fs.existsSync(fileDir)) {
                         fs.mkdirSync(fileDir, { recursive: true });
@@ -229,10 +232,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     let codeFilePath: string = fileDir + '/' + getFileData.name;
                     let infoFilePath: string =
                         fileDir + '/' + getFileData.name + '.info';
+                    let userFilePath: string =
+                        fileDir + '/' + getFileData.name + '.user';
+                    let projectFilePath: string =
+                        fileDir + '/' + getFileData.name + '.project';
 
                     let decodedFileContent: string = atob(getFileData.content);
                     fs.writeFileSync(codeFilePath, decodedFileContent);
                     fs.writeFileSync(infoFilePath, getFileData.path);
+                    fs.writeFileSync(userFilePath, username);
+                    fs.writeFileSync(projectFilePath, projectname);
 
                     await vscode.window.showTextDocument(
                         await vscode.workspace.openTextDocument(

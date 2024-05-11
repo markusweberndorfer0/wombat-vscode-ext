@@ -172,8 +172,8 @@ export class APIRequests {
     public static async compileProject(username: string, projectname: string) {
         let apiUrl: string = 'http://192.168.125.1:8888/api/compile';
         let apiData: any = {
-            name: username,
-            user: projectname,
+            name: projectname,
+            user: username,
         };
 
         let apiResult: any = await axios.post(apiUrl, apiData);
@@ -185,12 +185,12 @@ export class APIRequests {
     public static async runProject(username: string, projectname: string) {
         let apiUrl: string = 'http://192.168.125.1:8888/api/run';
         let apiData: any = {
-            name: username,
-            user: projectname,
+            name: projectname,
+            user: username,
         };
 
         let apiResult: any = await axios.post(apiUrl, apiData);
-        if (apiResult.status !== 201) {
+        if (apiResult.status !== 200) {
             throw new Error('Got response code ' + apiResult.status);
         }
     }

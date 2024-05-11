@@ -4,13 +4,66 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { APIRequests } from './APIRequests';
+import { profileEnd } from 'console';
 
 export async function activate(context: vscode.ExtensionContext) {
-    const sidebarProvider = new SidebarProvider(context.extensionUri);
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             'wombat-sidebar',
-            sidebarProvider
+            new SidebarProvider(context.extensionUri)
+        )
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.compile',
+            async (e) => {
+                let savedFilepath: string = e.fsPath;
+                let wombatExtTempDirPath: string =
+                    os.tmpdir() + '/vscode_wombat_ext';
+
+                const relative = path.relative(
+                    wombatExtTempDirPath,
+                    savedFilepath
+                );
+
+                if (
+                    relative &&
+                    !relative.startsWith('..') &&
+                    !path.isAbsolute(relative)
+                ) {
+                    let usernameFilepath: string = savedFilepath + '.user';
+                    let projectnameFilepath: string =
+                        savedFilepath + '.project';
+
+                    let username: string = fs
+                        .readFileSync(usernameFilepath)
+                        .toString();
+                    let projectname: string = fs
+                        .readFileSync(projectnameFilepath)
+                        .toString();
+
+                    try {
+                        await APIRequests.compileProject(username, projectname);
+                        vscode.window.showInformationMessage(
+                            'The project ' +
+                                username +
+                                '/' +
+                                projectname +
+                                ' was compiled ✅'
+                        );
+                    } catch (e) {
+                        vscode.window.showErrorMessage(
+                            'There were errors compiling ' +
+                                username +
+                                '/' +
+                                projectname +
+                                ' -> ' +
+                                e
+                        );
+                    }
+                }
+            }
         )
     );
 
