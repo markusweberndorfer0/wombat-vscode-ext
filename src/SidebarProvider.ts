@@ -56,19 +56,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                     vscode.window
                         .showInputBox(createUserOptions)
-                        .then((value) => {
+                        .then(async (value) => {
                             if (!value) {
                                 vscode.window.showErrorMessage(
                                     'No user name given, no user created'
                                 );
                             } else {
                                 try {
-                                    APIRequests.createUser(value);
+                                    await APIRequests.createUser(value);
                                     webviewView.webview.postMessage({
                                         command: 'create-user',
                                     });
                                     vscode.window.showInformationMessage(
-                                        'User ' + value + ' was created!'
+                                        'User ' + value + ' was created ✅'
                                     );
                                 } catch (e) {
                                     vscode.window.showErrorMessage(
@@ -87,10 +87,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             'Yes',
                             'No'
                         )
-                        .then((answer) => {
+                        .then(async (answer) => {
                             if (answer === 'Yes') {
                                 try {
-                                    APIRequests.deleteUser(data.username);
+                                    await APIRequests.deleteUser(data.username);
                                     webviewView.webview.postMessage({
                                         command: 'delete-user',
                                     });
@@ -117,15 +117,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                     vscode.window
                         .showInputBox(createProjectOptions)
-                        .then((value) => {
+                        .then(async (value) => {
                             if (!value) {
                                 vscode.window.showErrorMessage(
                                     'No project name given, no project created'
                                 );
                             } else {
                                 try {
-                                    console.log(data.username);
-                                    APIRequests.createProject(
+                                    await APIRequests.createProject(
                                         'C',
                                         data.username,
                                         value
@@ -134,7 +133,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                         command: 'create-project',
                                     });
                                     vscode.window.showInformationMessage(
-                                        'Project ' + value + ' was created!'
+                                        'Project ' + value + ' was created ✅'
                                     );
                                 } catch (e) {
                                     vscode.window.showErrorMessage(
@@ -154,13 +153,18 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             'Yes',
                             'No'
                         )
-                        .then((answer) => {
+                        .then(async (answer) => {
                             if (answer === 'Yes') {
                                 try {
+                                    await APIRequests.deleteProject(
+                                        data.username,
+                                        data.projectname
+                                    );
                                     vscode.window.showInformationMessage(
                                         'Project was deleted'
                                     );
                                 } catch (e) {
+                                    console.log(e);
                                     vscode.window.showErrorMessage(
                                         'Error while trying to delete project ' +
                                             e

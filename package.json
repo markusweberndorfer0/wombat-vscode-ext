@@ -37,10 +37,6 @@
                 {
                     "command": "kipr-wombat-vscode-extension.compile",
                     "group": "navigation"
-                },
-                {
-                    "command": "kipr-wombat-vscode-extension.run",
-                    "group": "navigation"
                 }
             ]
         },
@@ -51,15 +47,6 @@
                 "icon": {
                     "light": "media/compile-svgrepo-com.svg",
                     "dark": "media/compile-svgrepo-com.svg"
-                },
-                "category": "Wombat"
-            },
-            {
-                "command": "kipr-wombat-vscode-extension.run",
-                "title": "Run your code",
-                "icon": {
-                    "light": "media/run-svgrepo-com.svg",
-                    "dark": "media/run-svgrepo-com.svg"
                 },
                 "category": "Wombat"
             }

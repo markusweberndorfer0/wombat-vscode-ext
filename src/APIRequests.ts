@@ -4,7 +4,7 @@ export class APIRequests {
     /**
      * Gets all users of the wombat
      */
-    public static async getUsers(): Promise<any> {
+    public static async getUsers() {
         let apiUri: string = 'http://192.168.125.1:8888/api/projects/users';
 
         let apiResult: any = await axios.get(apiUri);
@@ -146,6 +146,11 @@ export class APIRequests {
         throw new Error('Got response code ' + apiResult.status);
     }
 
+    /**
+     * Uploads a file to the wombat
+     * @param filepath The filepath
+     * @param encodedContent The encoded content
+     */
     public static async putFile(filepath: string, encodedContent: string) {
         let apiUrl: string = 'http://192.168.125.1:8888/api/fs' + filepath;
         let apiData: any = {
@@ -155,6 +160,37 @@ export class APIRequests {
 
         let apiResult: any = await axios.put(apiUrl, apiData);
         if (apiResult.status !== 204) {
+            throw new Error('Got response code ' + apiResult.status);
+        }
+    }
+
+    /**
+     * Compile a wombat project
+     * @param username
+     * @param projectname
+     */
+    public static async compileProject(username: string, projectname: string) {
+        let apiUrl: string = 'http://192.168.125.1:8888/api/compile';
+        let apiData: any = {
+            name: username,
+            user: projectname,
+        };
+
+        let apiResult: any = await axios.post(apiUrl, apiData);
+        if (apiResult.status !== 200) {
+            throw new Error('Got response code ' + apiResult.status);
+        }
+    }
+
+    public static async runProject(username: string, projectname: string) {
+        let apiUrl: string = 'http://192.168.125.1:8888/api/run';
+        let apiData: any = {
+            name: username,
+            user: projectname,
+        };
+
+        let apiResult: any = await axios.post(apiUrl, apiData);
+        if (apiResult.status !== 201) {
             throw new Error('Got response code ' + apiResult.status);
         }
     }

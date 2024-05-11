@@ -171,10 +171,18 @@ function createProject() {
  * Sends an api request to delete project
  */
 function deleteProject() {
-    vscode.postMessage({
-        type: 'delete-project',
-        username: currentUsername,
-        projectname: currentProjectname,
+    return new Promise((resolve) => {
+        vscode.postMessage({
+            type: 'delete-project',
+            username: currentUsername,
+            projectname: currentProjectname,
+        });
+        window.addEventListener('message', async (event) => {
+            if (event.data.command === 'delete-project') {
+                await loadData();
+                resolve();
+            }
+        });
     });
 }
 
@@ -196,14 +204,14 @@ createProjectButton.addEventListener('click', async () => {
         await createProject();
     }
 });
-deleteProjectButton.addEventListener('click', () => {
+deleteProjectButton.addEventListener('click', async () => {
     // @ts-ignore
     currentUsername = userSelect.value;
     // @ts-ignore
-    currentUsername = projectSelect.value;
+    currentProjectname = projectSelect.value;
 
-    if (currentUsername !== null && currentUsername !== null) {
-        deleteProject();
+    if (currentUsername !== null && currentProjectname !== null) {
+        await deleteProject();
     }
 });
 userSelect.addEventListener('change', async () => {
