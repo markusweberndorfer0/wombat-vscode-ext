@@ -1,36 +1,16 @@
 import * as vscode from 'vscode';
 import { getNonce } from './getNonce';
 import { APIRequests } from './APIRequests';
-import { json } from 'stream/consumers';
 import os from 'os';
 import fs from 'fs';
-import { get } from 'axios';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     _view?: vscode.WebviewView;
     _doc?: vscode.TextDocument;
     private readonly _extensionUri: vscode.Uri;
-    private aUser: string = '';
-    private aProject: string = '';
 
     constructor(_extensionUri: vscode.Uri) {
         this._extensionUri = _extensionUri;
-    }
-
-    public set activeUser(v: string) {
-        this.aUser = v;
-    }
-
-    public get activeUser(): string {
-        return this.aUser;
-    }
-
-    public set activeProject(v: string) {
-        this.aProject = v;
-    }
-
-    public get activeProject(): string {
-        return this.aProject;
     }
 
     public resolveWebviewView(webviewView: vscode.WebviewView) {
@@ -180,7 +160,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     let getUsersData = JSON.stringify(
                         await APIRequests.getUsers()
                     );
-                    this.activeUser = data.username;
                     webviewView.webview.postMessage({
                         command: 'users',
                         data: getUsersData,
@@ -190,7 +169,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     let getProjectsData = JSON.stringify(
                         await APIRequests.getProjects(data.username)
                     );
-                    this.activeUser = data.username;
                     webviewView.webview.postMessage({
                         command: 'projects',
                         data: getProjectsData,
@@ -203,8 +181,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             data.projectname
                         )
                     );
-                    this.activeUser = data.username;
-                    this.activeProject = data.projectname;
                     webviewView.webview.postMessage({
                         command: 'project',
                         data: getProjectData,

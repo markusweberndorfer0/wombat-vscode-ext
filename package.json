@@ -2,6 +2,8 @@
     "name": "kipr-wombat-vscode-extension",
     "displayName": "KIPR Wombat VSCode Extension",
     "description": "A extension which allows you to program the KIPR Wombat via Visual Studio Code",
+    "publisher": "markusplayzz",
+    "icon": "media/logo.jpg",
     "version": "0.0.1",
     "repository": {
         "type": "git",
