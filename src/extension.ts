@@ -47,7 +47,7 @@ export async function activate(context: vscode.ExtensionContext) {
                                 config.username +
                                 '/' +
                                 config.projectname +
-                                ' was compiled ✅'
+                                ' was compiled'
                         );
                     } catch (e) {
                         vscode.window.showErrorMessage(
@@ -88,7 +88,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     config.filepathOnWombat,
                     encodedContent
                 );
-                vscode.window.showInformationMessage('The file was saved ✅');
+                vscode.window.showInformationMessage('The file was saved');
             } catch (e) {
                 vscode.window.showErrorMessage(
                     'There were errors saving the file -> ' + e

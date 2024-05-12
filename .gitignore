@@ -128,3 +128,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# exclude compiled extension
+kipr-wombat-vscode-extension-*.vsix

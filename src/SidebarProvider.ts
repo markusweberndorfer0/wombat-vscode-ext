@@ -68,7 +68,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                         command: 'create-user',
                                     });
                                     vscode.window.showInformationMessage(
-                                        'User ' + value + ' was created ✅'
+                                        'User ' + value + ' was created'
                                     );
                                 } catch (e) {
                                     vscode.window.showErrorMessage(
@@ -133,7 +133,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                         command: 'create-project',
                                     });
                                     vscode.window.showInformationMessage(
-                                        'Project ' + value + ' was created ✅'
+                                        'Project ' + value + ' was created'
                                     );
                                 } catch (e) {
                                     vscode.window.showErrorMessage(
