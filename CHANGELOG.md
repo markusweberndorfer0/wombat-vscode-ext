@@ -1,9 +1,9 @@
 # Change Log
 
-All notable changes to the "kipr-wombat-vscode-extension" extension will be documented in this file.
+## [0.0.1]
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+-   Initial release
+-   Create/Delete Wombat Users
+-   Create/Delete C Projects on the Wombat
+-   Open/Save(Auto-Upload) Source files of your wombat
+-   Compile C Projects of your wombat
