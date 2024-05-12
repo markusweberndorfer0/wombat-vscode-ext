@@ -4,7 +4,6 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { APIRequests } from './APIRequests';
-import { profileEnd } from 'console';
 
 export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
