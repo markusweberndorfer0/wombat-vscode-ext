@@ -18,6 +18,8 @@
 ## Known Issues
 
 - Running projects does not work, because of problems with getting the output
+- No code completion
+- No recognition of the official `kipr/wombat.h` lib
 
 ## Release Notes
 

@@ -31,32 +31,30 @@ export async function activate(context: vscode.ExtensionContext) {
                     !relative.startsWith('..') &&
                     !path.isAbsolute(relative)
                 ) {
-                    let usernameFilepath: string = savedFilepath + '.user';
-                    let projectnameFilepath: string =
-                        savedFilepath + '.project';
+                    let configFilepath: string = savedFilepath + '.json';
 
-                    let username: string = fs
-                        .readFileSync(usernameFilepath)
-                        .toString();
-                    let projectname: string = fs
-                        .readFileSync(projectnameFilepath)
-                        .toString();
+                    let config: any = JSON.parse(
+                        fs.readFileSync(configFilepath).toString()
+                    );
 
                     try {
-                        await APIRequests.compileProject(username, projectname);
+                        await APIRequests.compileProject(
+                            config.username,
+                            config.projectname
+                        );
                         vscode.window.showInformationMessage(
                             'The project ' +
-                                username +
+                                config.username +
                                 '/' +
-                                projectname +
+                                config.projectname +
                                 ' was compiled ✅'
                         );
                     } catch (e) {
                         vscode.window.showErrorMessage(
                             'There were errors compiling ' +
-                                username +
+                                config.username +
                                 '/' +
-                                projectname +
+                                config.projectname +
                                 ' -> ' +
                                 e
                         );
@@ -77,15 +75,19 @@ export async function activate(context: vscode.ExtensionContext) {
             !relative.startsWith('..') &&
             !path.isAbsolute(relative)
         ) {
-            let filepath: string = fs
-                .readFileSync(savedFilepath + '.info')
-                .toString();
+            let configFilepath: string = savedFilepath + '.json';
+            let config: any = JSON.parse(
+                fs.readFileSync(configFilepath).toString()
+            );
             let fileContent: string = fs.readFileSync(savedFilepath).toString();
 
             const encodedContent: string = btoa(fileContent);
 
             try {
-                await APIRequests.putFile(filepath, encodedContent);
+                await APIRequests.putFile(
+                    config.filepathOnWombat,
+                    encodedContent
+                );
                 vscode.window.showInformationMessage('The file was saved ✅');
             } catch (e) {
                 vscode.window.showErrorMessage(

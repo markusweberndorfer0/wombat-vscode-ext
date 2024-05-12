@@ -230,18 +230,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     }
 
                     let codeFilePath: string = fileDir + '/' + getFileData.name;
-                    let infoFilePath: string =
-                        fileDir + '/' + getFileData.name + '.info';
-                    let userFilePath: string =
-                        fileDir + '/' + getFileData.name + '.user';
-                    let projectFilePath: string =
-                        fileDir + '/' + getFileData.name + '.project';
+
+                    let configData: any = {
+                        filepathOnWombat: getFileData.path,
+                        username,
+                        projectname,
+                    };
+
+                    let configFilepath: string =
+                        fileDir + '/' + getFileData.name + '.json';
 
                     let decodedFileContent: string = atob(getFileData.content);
                     fs.writeFileSync(codeFilePath, decodedFileContent);
-                    fs.writeFileSync(infoFilePath, getFileData.path);
-                    fs.writeFileSync(userFilePath, username);
-                    fs.writeFileSync(projectFilePath, projectname);
+                    fs.writeFileSync(
+                        configFilepath,
+                        JSON.stringify(configData)
+                    );
 
                     await vscode.window.showTextDocument(
                         await vscode.workspace.openTextDocument(
