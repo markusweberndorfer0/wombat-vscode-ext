@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { APIRequests } from './APIRequests';
+import { WombatOutputChannel } from './WombatOuputChannel';
 
 export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
@@ -13,6 +14,7 @@ export async function activate(context: vscode.ExtensionContext) {
         )
     );
 
+    // Command for compiling active project
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'kipr-wombat-vscode-extension.compile',
@@ -50,8 +52,61 @@ export async function activate(context: vscode.ExtensionContext) {
                                 ' was compiled'
                         );
                     } catch (e) {
+                        console.log(e);
                         vscode.window.showErrorMessage(
                             'There were errors compiling ' +
+                                config.username +
+                                '/' +
+                                config.projectname +
+                                ' -> ' +
+                                e
+                        );
+                    }
+                }
+            }
+        )
+    );
+
+    // Command for running active project
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.run',
+            async (e) => {
+                let savedFilepath: string = e.fsPath;
+                let wombatExtTempDirPath: string =
+                    os.tmpdir() + '/vscode_wombat_ext';
+
+                const relative = path.relative(
+                    wombatExtTempDirPath,
+                    savedFilepath
+                );
+
+                if (
+                    relative &&
+                    !relative.startsWith('..') &&
+                    !path.isAbsolute(relative)
+                ) {
+                    let configFilepath: string = savedFilepath + '.json';
+
+                    let config: any = JSON.parse(
+                        fs.readFileSync(configFilepath).toString()
+                    );
+
+                    try {
+                        await APIRequests.runProject(
+                            config.username,
+                            config.projectname
+                        );
+                        vscode.window.showInformationMessage(
+                            'The project ' +
+                                config.username +
+                                '/' +
+                                config.projectname +
+                                ' is running'
+                        );
+                    } catch (e) {
+                        vscode.window.showErrorMessage(
+                            'There were errors while trying to run ' +
                                 config.username +
                                 '/' +
                                 config.projectname +
@@ -96,4 +151,6 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         }
     });
+
+    WombatOutputChannel.generateTerminalOutputChannel();
 }

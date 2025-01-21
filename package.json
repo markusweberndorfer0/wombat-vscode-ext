@@ -43,6 +43,10 @@
                 {
                     "command": "kipr-wombat-vscode-extension.compile",
                     "group": "navigation"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.run",
+                    "group": "navigation"
                 }
             ]
         },
@@ -50,6 +54,15 @@
             {
                 "command": "kipr-wombat-vscode-extension.compile",
                 "title": "Compile your code",
+                "icon": {
+                    "light": "media/compile-svgrepo-com.svg",
+                    "dark": "media/compile-svgrepo-com.svg"
+                },
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.run",
+                "title": "Run your active project",
                 "icon": {
                     "light": "media/compile-svgrepo-com.svg",
                     "dark": "media/compile-svgrepo-com.svg"
@@ -69,6 +82,7 @@
     "devDependencies": {
         "@types/mocha": "^10.0.6",
         "@types/node": "18.x",
+        "@types/socket.io-client": "^1.4.36",
         "@types/vscode": "^1.88.0",
         "@types/vscode-webview": "^1.57.0",
         "@typescript-eslint/eslint-plugin": "^7.4.0",
@@ -79,6 +93,7 @@
         "typescript": "^5.4.5"
     },
     "dependencies": {
-        "axios": "^1.6.8"
+        "axios": "^1.6.8",
+        "socket.io-client": "1.4.8"
     }
 }
