@@ -10,6 +10,8 @@
 -   Create/Delete C Projects on the Wombat
 -   Open/Save(Auto-Upload) Source files of your wombat
 -   Compile C Projects of your wombat
+-   Run/Stop Wombat projects
+-   Display Wombat project output
 
 ## Requirements
 

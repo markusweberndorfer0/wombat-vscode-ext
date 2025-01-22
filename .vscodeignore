@@ -9,4 +9,5 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
-!node_modules/@vscode/codicons/dist/**
+!node_modules/@vscode/codicons/dist/codicons.css
+!node_modules/@vscode/codicons/dist/codicons.tff
