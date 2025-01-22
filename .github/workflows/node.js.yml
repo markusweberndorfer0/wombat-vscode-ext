@@ -15,10 +15,23 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - name: Use Node.js 22.x
+
+            - name: Install node and npm
               uses: actions/setup-node@v4
               with:
                   node-version: '22.x'
                   cache: 'npm'
-            - run: npm ci
-            - run: npm run test
+
+            - name: Install Xvfb
+              run: sudo apt-get install -y xvfb
+
+            - name: Start Xvfb
+              run: Xvfb :99 & export DISPLAY=:99
+
+            - name: Install npm packages
+              run: npm ci
+
+            - name: Run tests
+              run: npm run test
+              env:
+                  DISPLAY: :99
