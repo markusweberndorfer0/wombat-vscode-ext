@@ -35,15 +35,22 @@ img:hover {
 select {
     font-size: 13px;
     width: 100%;
-    background-color: #313131;
+    background-color: var(--vscode-button-secondaryBackground);
     border-radius: 0;
-    color: white;
+    color: var(--vscode-foreground);
 }
 
 .select {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+    align-items: center;
+
+    i {
+        padding-right: 2px;
+        padding-left: 2px;
+        cursor: pointer;
+    }
 }
 
 .mr-4 {

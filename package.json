@@ -2,7 +2,7 @@
     "name": "kipr-wombat-vscode-extension",
     "displayName": "KIPR Wombat VSCode Extension",
     "description": "A extension which allows you to program the KIPR Wombat via Visual Studio Code",
-    "publisher": "markusplayzz",
+    "publisher": "markusweberndorfer0",
     "icon": "media/logo.jpg",
     "version": "0.0.1",
     "repository": {
@@ -23,7 +23,7 @@
                 {
                     "id": "wombat-sidebar-view",
                     "title": "KIPR Wombat",
-                    "icon": "media/logo.svg"
+                    "icon": "media/logo.png"
                 }
             ]
         },
@@ -47,26 +47,30 @@
                 {
                     "command": "kipr-wombat-vscode-extension.run",
                     "group": "navigation"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.stop",
+                    "group": "navigation"
                 }
             ]
         },
         "commands": [
             {
                 "command": "kipr-wombat-vscode-extension.compile",
-                "title": "Compile your code",
-                "icon": {
-                    "light": "media/compile-svgrepo-com.svg",
-                    "dark": "media/compile-svgrepo-com.svg"
-                },
+                "title": "Compile active project",
+                "icon": "$(tools)",
                 "category": "Wombat"
             },
             {
                 "command": "kipr-wombat-vscode-extension.run",
-                "title": "Run your active project",
-                "icon": {
-                    "light": "media/compile-svgrepo-com.svg",
-                    "dark": "media/compile-svgrepo-com.svg"
-                },
+                "title": "Run active project",
+                "icon": "$(play)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.stop",
+                "title": "Stop running project",
+                "icon": "$(debug-stop)",
                 "category": "Wombat"
             }
         ]
@@ -93,6 +97,7 @@
         "typescript": "^5.4.5"
     },
     "dependencies": {
+        "@vscode/codicons": "^0.0.36",
         "axios": "^1.6.8",
         "socket.io-client": "1.4.8"
     }

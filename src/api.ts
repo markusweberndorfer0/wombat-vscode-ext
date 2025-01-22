@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { WombatOutputChannel } from './WombatOuputChannel';
+import { TerminalOutput } from './terminalOutput';
 
-export class APIRequests {
+export class API {
     /**
      * Gets all users of the wombat
      */
@@ -205,7 +205,7 @@ export class APIRequests {
         } else if (![200, 201, 204].includes(apiResult.status)) {
             throw new Error('Got response code ' + apiResult.status);
         } else {
-            WombatOutputChannel.showAndClearWombatOutputChannel();
+            TerminalOutput.showAndClearWombatOutputChannel();
         }
     }
 
