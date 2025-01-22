@@ -4,8 +4,9 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { API } from './api';
-import { TerminalOutput } from './terminalOutput';
+import { WebSocket } from './webSocket';
 import { Config } from './models/config';
+import { WombatOutputChannel } from './wombatOutputChannel';
 
 export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
@@ -22,29 +23,27 @@ export async function activate(context: vscode.ExtensionContext) {
             async (e) => {
                 const config = getConfigFromFilepath(e.fsPath);
 
-                if (config !== undefined) {
-                    try {
-                        await API.compileProject(
-                            config.username,
-                            config.projectname
-                        );
-                        vscode.window.showInformationMessage(
-                            'The project ' +
-                                config.username +
-                                '/' +
-                                config.projectname +
-                                ' was compiled'
-                        );
-                    } catch (e) {
-                        vscode.window.showErrorMessage(
-                            'There were errors compiling ' +
-                                config.username +
-                                '/' +
-                                config.projectname +
-                                ' -> ' +
-                                e
-                        );
-                    }
+                if (config === undefined) {
+                    return;
+                }
+
+                WombatOutputChannel.showAndClearWombatOutputChannel();
+
+                try {
+                    const returnStr = await API.compileProject(
+                        config.username,
+                        config.projectname
+                    );
+                    WombatOutputChannel.appendToOutputChannel(returnStr);
+                } catch (e) {
+                    vscode.window.showErrorMessage(
+                        'There were errors compiling ' +
+                            config.username +
+                            '/' +
+                            config.projectname +
+                            ' -> ' +
+                            e
+                    );
                 }
             }
         )
@@ -57,29 +56,28 @@ export async function activate(context: vscode.ExtensionContext) {
             async (e) => {
                 const config = getConfigFromFilepath(e.fsPath);
 
-                if (config !== undefined) {
-                    try {
-                        await API.runProject(
-                            config.username,
-                            config.projectname
-                        );
-                        vscode.window.showInformationMessage(
-                            'The project ' +
-                                config.username +
-                                '/' +
-                                config.projectname +
-                                ' is running'
-                        );
-                    } catch (e) {
-                        vscode.window.showErrorMessage(
-                            'There were errors while trying to run ' +
-                                config.username +
-                                '/' +
-                                config.projectname +
-                                ' -> ' +
-                                e
-                        );
-                    }
+                if (config === undefined) {
+                    return;
+                }
+
+                try {
+                    await API.runProject(config.username, config.projectname);
+                    vscode.window.showInformationMessage(
+                        'The project ' +
+                            config.username +
+                            '/' +
+                            config.projectname +
+                            ' is running'
+                    );
+                } catch (e) {
+                    vscode.window.showErrorMessage(
+                        'There were errors while trying to run ' +
+                            config.username +
+                            '/' +
+                            config.projectname +
+                            ' -> ' +
+                            e
+                    );
                 }
             }
         )
@@ -134,7 +132,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    TerminalOutput.generateTerminalOutputChannel();
+    WebSocket.listenOnTerminalOutput();
 }
 
 /**

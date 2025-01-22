@@ -14,3 +14,9 @@
 -   Fix light/dark mode issues caused by icons
 -   Connect to wombat terminal socket
 -   Display wombat run output in output channel
+
+## [0.0.3]
+
+-   Select programming language at project creation
+-   Notify user about connect/disconnect
+-   Show output of compile
