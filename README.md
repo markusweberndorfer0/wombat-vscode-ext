@@ -25,8 +25,4 @@
 
 ## Release Notes
 
-### Version 0.0.1
-
--   Initial release of Wombat VSCode extension
-
-_Icons by [svgrepo.com](https://svgrepo.com)_
+[CHANGELOG.md](./CHANGELOG.md)
