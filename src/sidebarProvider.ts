@@ -101,34 +101,47 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         placeHolder: 'Name of new project',
                     };
 
-                    vscode.window
-                        .showInputBox(createProjectOptions)
-                        .then(async (value) => {
-                            if (!value) {
-                                vscode.window.showErrorMessage(
-                                    'No project name given, no project created'
-                                );
-                            } else {
-                                try {
-                                    await API.createProject(
-                                        'C',
-                                        data.username,
-                                        value
-                                    );
-                                    webviewView.webview.postMessage({
-                                        command: 'create-project',
-                                    });
-                                    vscode.window.showInformationMessage(
-                                        'Project ' + value + ' was created'
-                                    );
-                                } catch (e) {
-                                    vscode.window.showErrorMessage(
-                                        'Error while trying to create project ' +
-                                            e
-                                    );
-                                }
-                            }
+                    const projectName = await vscode.window.showInputBox(
+                        createProjectOptions
+                    );
+                    if (!projectName) {
+                        vscode.window.showErrorMessage(
+                            'No project name given, no project created'
+                        );
+                        return;
+                    }
+
+                    const programmingLanguage =
+                        await vscode.window.showQuickPick([
+                            'C',
+                            'C++',
+                            'Python',
+                        ]);
+                    if (!programmingLanguage) {
+                        vscode.window.showErrorMessage(
+                            'No programming language was selected!'
+                        );
+                        return;
+                    }
+
+                    try {
+                        await API.createProject(
+                            programmingLanguage,
+                            data.username,
+                            projectName
+                        );
+                        webviewView.webview.postMessage({
+                            command: 'create-project',
                         });
+                        vscode.window.showInformationMessage(
+                            'Project ' + projectName + ' was created'
+                        );
+                    } catch (e) {
+                        vscode.window.showErrorMessage(
+                            'Error while trying to create project ' + e
+                        );
+                    }
+
                     break;
                 case 'delete-project':
                     vscode.window

@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { TerminalOutput } from './terminalOutput';
+import { WombatOutputChannel } from './wombatOutputChannel';
+import { CompileResponse } from './models/compileRespone';
 
 export class API {
     /**
@@ -177,9 +178,28 @@ export class API {
             user: username,
         };
 
-        let apiResult: any = await axios.post(apiUrl, apiData);
+        let apiResult = await axios.post(apiUrl, apiData);
         if (apiResult.status !== 200) {
             throw new Error('Got response code ' + apiResult.status);
+        }
+
+        const data = apiResult.data as CompileResponse;
+
+        if (data.result.error !== null) {
+            return `Compilation failed\n${data.result.stderr}`;
+        } else if (
+            data.result.stderr !== null &&
+            data.result.stderr.length > 0
+        ) {
+            return (
+                `Compilation succeeded with warning(s)\n${data.result.stderr}` +
+                (data.result.stdout.length > 0 ? `\n${data.result.stdout}` : '')
+            );
+        } else {
+            return (
+                'Compilation succeeded' +
+                (data.result.stdout.length > 0 ? `\n${data.result.stdout}` : '')
+            );
         }
     }
 
@@ -205,7 +225,7 @@ export class API {
         } else if (![200, 201, 204].includes(apiResult.status)) {
             throw new Error('Got response code ' + apiResult.status);
         } else {
-            TerminalOutput.showAndClearWombatOutputChannel();
+            WombatOutputChannel.showAndClearWombatOutputChannel();
         }
     }
 
