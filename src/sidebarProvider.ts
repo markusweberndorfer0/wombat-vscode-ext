@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getNonce } from './getNonce';
-import { APIRequests } from './APIRequests';
+import { API } from './api';
 import os from 'os';
 import fs from 'fs';
 
@@ -21,6 +21,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             enableScripts: true,
             localResourceRoots: [
                 vscode.Uri.joinPath(this._extensionUri, 'media'),
+                vscode.Uri.joinPath(
+                    this._extensionUri,
+                    'node_modules',
+                    '@vscode/codicons',
+                    'dist'
+                ),
             ],
         };
 
@@ -43,7 +49,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 );
                             } else {
                                 try {
-                                    await APIRequests.createUser(value);
+                                    await API.createUser(value);
                                     webviewView.webview.postMessage({
                                         command: 'create-user',
                                     });
@@ -70,7 +76,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         .then(async (answer) => {
                             if (answer === 'Yes') {
                                 try {
-                                    await APIRequests.deleteUser(data.username);
+                                    await API.deleteUser(data.username);
                                     webviewView.webview.postMessage({
                                         command: 'delete-user',
                                     });
@@ -104,7 +110,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                 );
                             } else {
                                 try {
-                                    await APIRequests.createProject(
+                                    await API.createProject(
                                         'C',
                                         data.username,
                                         value
@@ -136,7 +142,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         .then(async (answer) => {
                             if (answer === 'Yes') {
                                 try {
-                                    await APIRequests.deleteProject(
+                                    await API.deleteProject(
                                         data.username,
                                         data.projectname
                                     );
@@ -157,9 +163,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         });
                     break;
                 case 'get-users':
-                    let getUsersData = JSON.stringify(
-                        await APIRequests.getUsers()
-                    );
+                    let getUsersData = JSON.stringify(await API.getUsers());
                     webviewView.webview.postMessage({
                         command: 'users',
                         data: getUsersData,
@@ -167,7 +171,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'get-projects':
                     let getProjectsData = JSON.stringify(
-                        await APIRequests.getProjects(data.username)
+                        await API.getProjects(data.username)
                     );
                     webviewView.webview.postMessage({
                         command: 'projects',
@@ -176,10 +180,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'get-project':
                     let getProjectData = JSON.stringify(
-                        await APIRequests.getProject(
-                            data.username,
-                            data.projectname
-                        )
+                        await API.getProject(data.username, data.projectname)
                     );
                     webviewView.webview.postMessage({
                         command: 'project',
@@ -190,9 +191,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     let username: string = data.username;
                     let projectname: string = data.projectname;
 
-                    let getFileData: any = await APIRequests.getFile(
-                        data.filepath
-                    );
+                    let getFileData: any = await API.getFile(data.filepath);
 
                     let fileDir: string =
                         os.tmpdir() +
@@ -252,6 +251,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             'main.js'
         );
 
+        const codiconsUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(
+                this._extensionUri,
+                'node_modules',
+                '@vscode/codicons',
+                'dist',
+                'codicon.css'
+            )
+        );
+
         // And the uri we use to load this script in the webview
         const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
 
@@ -305,13 +314,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 					Use a content security policy to only allow loading images from https or from our extension directory,
 					and only allow scripts that have a specific nonce.
 				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'unsafe-inline';script-src-elem 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${webview.cspSource}; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'unsafe-inline';script-src-elem 'nonce-${nonce}';">
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 				<link href="${stylesResetUri}" rel="stylesheet">
 				<link href="${stylesVSCodeUri}" rel="stylesheet">
 				<link href="${stylesMainUri}" rel="stylesheet">
+                <link href="${codiconsUri}" rel="stylesheet" />
 
 				<title>KIPR Wombat</title>
 			</head>
@@ -321,8 +331,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 				<div class="select">
 					<select id="user-select">
 					</select>
-					<img id="create-user" src="${svgPlusIcon}"></img>
-					<img id="delete-user" src="${svgMinusIcon}"></img>
+                    <i class="codicon codicon-add" id="create-user"></i>
+                    <i class="codicon codicon-remove" id="delete-user"></i>
 				</div>
 
                 <div class="heading mt-15">Projects</div>
@@ -330,8 +340,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 <div class="select">
 					<select id="project-select">
 					</select>
-					<img id="create-project" src="${svgPlusIcon}"></img>
-					<img id="delete-project" src="${svgMinusIcon}"></img>
+                    <i class="codicon codicon-add" id="create-project"></i>
+                    <i class="codicon codicon-remove" id="delete-project"></i>
 				</div>
                 
                 <div class="heading mt-15">Project files</div>

@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
-import { SidebarProvider } from './SidebarProvider';
+import { SidebarProvider } from './sidebarProvider';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { APIRequests } from './APIRequests';
+import { API } from './api';
+import { TerminalOutput } from './terminalOutput';
+import { Config } from './models/config';
 
 export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
@@ -13,32 +15,16 @@ export async function activate(context: vscode.ExtensionContext) {
         )
     );
 
+    // Command for compiling active project
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'kipr-wombat-vscode-extension.compile',
             async (e) => {
-                let savedFilepath: string = e.fsPath;
-                let wombatExtTempDirPath: string =
-                    os.tmpdir() + '/vscode_wombat_ext';
+                const config = getConfigFromFilepath(e.fsPath);
 
-                const relative = path.relative(
-                    wombatExtTempDirPath,
-                    savedFilepath
-                );
-
-                if (
-                    relative &&
-                    !relative.startsWith('..') &&
-                    !path.isAbsolute(relative)
-                ) {
-                    let configFilepath: string = savedFilepath + '.json';
-
-                    let config: any = JSON.parse(
-                        fs.readFileSync(configFilepath).toString()
-                    );
-
+                if (config !== undefined) {
                     try {
-                        await APIRequests.compileProject(
+                        await API.compileProject(
                             config.username,
                             config.projectname
                         );
@@ -64,6 +50,60 @@ export async function activate(context: vscode.ExtensionContext) {
         )
     );
 
+    // Command for running active project
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.run',
+            async (e) => {
+                const config = getConfigFromFilepath(e.fsPath);
+
+                if (config !== undefined) {
+                    try {
+                        await API.runProject(
+                            config.username,
+                            config.projectname
+                        );
+                        vscode.window.showInformationMessage(
+                            'The project ' +
+                                config.username +
+                                '/' +
+                                config.projectname +
+                                ' is running'
+                        );
+                    } catch (e) {
+                        vscode.window.showErrorMessage(
+                            'There were errors while trying to run ' +
+                                config.username +
+                                '/' +
+                                config.projectname +
+                                ' -> ' +
+                                e
+                        );
+                    }
+                }
+            }
+        )
+    );
+
+    // Command for running active project
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.stop',
+            async (e) => {
+                try {
+                    await API.stopProject();
+                    vscode.window.showInformationMessage(
+                        'The running project was stopped'
+                    );
+                } catch (e) {
+                    vscode.window.showErrorMessage(
+                        'There was a problem stopping the project'
+                    );
+                }
+            }
+        )
+    );
+
     // Autosave wombat files
     vscode.workspace.onDidSaveTextDocument(async (e) => {
         let savedFilepath: string = e.fileName;
@@ -84,10 +124,7 @@ export async function activate(context: vscode.ExtensionContext) {
             const encodedContent: string = btoa(fileContent);
 
             try {
-                await APIRequests.putFile(
-                    config.filepathOnWombat,
-                    encodedContent
-                );
+                await API.putFile(config.filepathOnWombat, encodedContent);
                 vscode.window.showInformationMessage('The file was saved');
             } catch (e) {
                 vscode.window.showErrorMessage(
@@ -96,4 +133,26 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         }
     });
+
+    TerminalOutput.generateTerminalOutputChannel();
+}
+
+/**
+ * Get config from filepath
+ * @param savedFilepath - Path of saved file
+ */
+function getConfigFromFilepath(savedFilepath: string): Config | undefined {
+    let wombatExtTempDirPath: string = os.tmpdir() + '/vscode_wombat_ext';
+
+    const relative = path.relative(wombatExtTempDirPath, savedFilepath);
+
+    if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+        let configFilepath: string = savedFilepath + '.json';
+
+        const config: any = JSON.parse(
+            fs.readFileSync(configFilepath).toString()
+        );
+
+        return config;
+    }
 }

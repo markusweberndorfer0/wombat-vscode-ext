@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { TerminalOutput } from './terminalOutput';
 
-export class APIRequests {
+export class API {
     /**
      * Gets all users of the wombat
      */
@@ -182,6 +183,11 @@ export class APIRequests {
         }
     }
 
+    /**
+     * Run a wombat project
+     * @param username
+     * @param projectname
+     */
     public static async runProject(username: string, projectname: string) {
         let apiUrl: string = 'http://192.168.125.1:8888/api/run';
         let apiData: any = {
@@ -189,7 +195,28 @@ export class APIRequests {
             user: username,
         };
 
-        let apiResult: any = await axios.post(apiUrl, apiData);
+        let apiResult = await axios.post(apiUrl, apiData, {
+            validateStatus: (status) =>
+                (status >= 200 && status < 300) || status === 409,
+        });
+
+        if (apiResult.status === 409) {
+            throw new Error('Program is already running!');
+        } else if (![200, 201, 204].includes(apiResult.status)) {
+            throw new Error('Got response code ' + apiResult.status);
+        } else {
+            TerminalOutput.showAndClearWombatOutputChannel();
+        }
+    }
+
+    /**
+     * Stop a wombat project
+     */
+    public static async stopProject() {
+        let apiUrl: string = 'http://192.168.125.1:8888/api/run/current';
+
+        let apiResult = await axios.delete(apiUrl);
+
         if (apiResult.status !== 200) {
             throw new Error('Got response code ' + apiResult.status);
         }
