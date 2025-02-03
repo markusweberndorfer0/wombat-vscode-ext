@@ -101,6 +101,6 @@
     "dependencies": {
         "@vscode/codicons": "^0.0.36",
         "axios": "^1.7.4",
-        "socket.io-client": "1.4.8"
+        "socket.io-client": "1.7.4"
     }
 }
