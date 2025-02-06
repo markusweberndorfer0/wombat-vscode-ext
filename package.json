@@ -82,7 +82,7 @@
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile && npm run lint",
-        "lint": "eslint src --ext ts",
+        "lint": "eslint src",
         "test": "vscode-test"
     },
     "devDependencies": {
@@ -91,12 +91,12 @@
         "@types/socket.io-client": "^1.4.36",
         "@types/vscode": "^1.88.0",
         "@types/vscode-webview": "^1.57.0",
-        "@typescript-eslint/eslint-plugin": "^8.23.0",
-        "@typescript-eslint/parser": "^8.23.0",
         "@vscode/test-cli": "^0.0.8",
         "@vscode/test-electron": "^2.4.1",
-        "eslint": "^8.57.0",
-        "typescript": "^5.4.5"
+        "typescript": "^5.4.5",
+        "@typescript-eslint/eslint-plugin": "^8.22.0",
+        "@typescript-eslint/parser": "^8.22.0",
+        "eslint": "^9.19.0"
     },
     "dependencies": {
         "@vscode/codicons": "^0.0.36",
