@@ -86,7 +86,7 @@
         "test": "vscode-test"
     },
     "devDependencies": {
-        "@types/mocha": "^10.0.6",
+        "@types/mocha": "^10.0.10",
         "@types/node": "22.x",
         "@types/socket.io-client": "^1.4.36",
         "@types/vscode": "^1.88.0",
