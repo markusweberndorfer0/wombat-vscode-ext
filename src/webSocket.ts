@@ -1,12 +1,18 @@
 import io from 'socket.io-client';
 import * as vscode from 'vscode';
 import { WombatOutputChannel } from './wombatOutputChannel';
+import { SidebarProvider } from './sidebarProvider';
 
 export class WebSocket {
     /**
      * Generates an output channel and puts the run output into it
      */
-    public static async listenOnTerminalOutput() {
+    public async listenOnTerminalOutput() {
+        const sidebar = SidebarProvider.getInstance(
+            vscode.extensions.getExtension('kipr-wombat-vscode-extension')!
+                .exports
+        );
+
         const socket = io('ws://192.168.125.1:8888/runner', {
             reconnection: true,
             reconnectionAttempts: Infinity,
@@ -26,6 +32,7 @@ export class WebSocket {
 
         socket.on('connect', () => {
             vscode.window.showInformationMessage('Connected to Wombat');
+            sidebar.refresh();
         });
     }
 }

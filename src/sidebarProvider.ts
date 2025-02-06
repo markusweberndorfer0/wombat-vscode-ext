@@ -5,12 +5,21 @@ import os from 'os';
 import fs from 'fs';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
+    private static instance: SidebarProvider | null = null;
     _view?: vscode.WebviewView;
-    _doc?: vscode.TextDocument;
     private readonly _extensionUri: vscode.Uri;
 
-    constructor(_extensionUri: vscode.Uri) {
-        this._extensionUri = _extensionUri;
+    constructor(context: vscode.ExtensionContext) {
+        this._extensionUri = context.extensionUri;
+    }
+
+    public static getInstance(
+        context: vscode.ExtensionContext
+    ): SidebarProvider {
+        if (!SidebarProvider.instance) {
+            SidebarProvider.instance = new SidebarProvider(context);
+        }
+        return SidebarProvider.instance;
     }
 
     public resolveWebviewView(webviewView: vscode.WebviewView) {
@@ -31,6 +40,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         };
 
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+        webviewView.webview.postMessage;
 
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
@@ -74,23 +85,23 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             'No'
                         )
                         .then(async (answer) => {
-                            if (answer === 'Yes') {
-                                try {
-                                    await API.deleteUser(data.username);
-                                    webviewView.webview.postMessage({
-                                        command: 'delete-user',
-                                    });
-                                    vscode.window.showInformationMessage(
-                                        'User ' + data.username + ' was deleted'
-                                    );
-                                } catch (e) {
-                                    vscode.window.showErrorMessage(
-                                        'Error while trying to delete user ' + e
-                                    );
-                                }
-                            } else if (answer === 'No') {
+                            if (answer !== 'Yes') {
                                 vscode.window.showInformationMessage(
                                     "User wasn't deleted!"
+                                );
+                            }
+
+                            try {
+                                await API.deleteUser(data.username);
+                                webviewView.webview.postMessage({
+                                    command: 'delete-user',
+                                });
+                                vscode.window.showInformationMessage(
+                                    'User ' + data.username + ' was deleted'
+                                );
+                            } catch (e) {
+                                vscode.window.showErrorMessage(
+                                    'Error while trying to delete user ' + e
                                 );
                             }
                         });
@@ -153,24 +164,25 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             'No'
                         )
                         .then(async (answer) => {
-                            if (answer === 'Yes') {
-                                try {
-                                    await API.deleteProject(
-                                        data.username,
-                                        data.projectname
-                                    );
-                                    vscode.window.showInformationMessage(
-                                        'Project was deleted'
-                                    );
-                                } catch (e) {
-                                    vscode.window.showErrorMessage(
-                                        'Error while trying to delete project ' +
-                                            e
-                                    );
-                                }
-                            } else if (answer === 'No') {
+                            if (answer !== 'Yes') {
                                 vscode.window.showInformationMessage(
                                     "Project wasn't deleted!"
+                                );
+
+                                return;
+                            }
+
+                            try {
+                                await API.deleteProject(
+                                    data.username,
+                                    data.projectname
+                                );
+                                vscode.window.showInformationMessage(
+                                    'Project was deleted'
+                                );
+                            } catch (e) {
+                                vscode.window.showErrorMessage(
+                                    'Error while trying to delete project ' + e
                                 );
                             }
                         });
@@ -380,4 +392,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 			</body>
 			</html>`;
     }
+
+    public refresh(): undefined {}
 }
