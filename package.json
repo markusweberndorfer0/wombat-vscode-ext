@@ -96,7 +96,7 @@
         "typescript": "^5.7.3",
         "@typescript-eslint/eslint-plugin": "^8.22.0",
         "@typescript-eslint/parser": "^8.22.0",
-        "eslint": "^9.19.0"
+        "eslint": "^9.20.0"
     },
     "dependencies": {
         "@vscode/codicons": "^0.0.36",
