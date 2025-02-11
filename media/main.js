@@ -10,9 +10,17 @@ const deleteUserButton = document.querySelector('#delete-user');
 const createProjectButton = document.querySelector('#create-project');
 const deleteProjectButton = document.querySelector('#delete-project');
 const srcProjectFiles = document.querySelector('#src-project-files');
+const refreshButton = document.querySelector('#refresh');
 
 // data
 let usersData, projectsData, projectData, currentUsername, currentProjectname;
+
+window.addEventListener('message', (event) => {
+    if (event.data.command === 'refresh') {
+        console.log('reloading');
+        loadData();
+    }
+});
 
 // load data on load/reload
 loadData();
@@ -226,6 +234,9 @@ projectSelect.addEventListener('change', async () => {
     // @ts-ignore
     currentProjectname = projectSelect.value;
     await configureProjectDataPromise();
+});
+refreshButton.addEventListener('click', () => {
+    loadData();
 });
 
 window.addEventListener('message', (event) => {

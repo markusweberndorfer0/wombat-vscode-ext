@@ -6,10 +6,10 @@ import fs from 'fs';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     private static instance: SidebarProvider | null = null;
-    _view?: vscode.WebviewView;
+    private _sidebar?: vscode.WebviewView;
     private readonly _extensionUri: vscode.Uri;
 
-    constructor(context: vscode.ExtensionContext) {
+    private constructor(context: vscode.ExtensionContext) {
         this._extensionUri = context.extensionUri;
     }
 
@@ -23,9 +23,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
 
     public resolveWebviewView(webviewView: vscode.WebviewView) {
-        this._view = webviewView;
+        this._sidebar = webviewView;
 
-        webviewView.webview.options = {
+        this._sidebar.webview.options = {
             // Allow scripts in the webview
             enableScripts: true,
             localResourceRoots: [
@@ -39,11 +39,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             ],
         };
 
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        this._sidebar.webview.html = this._getHtmlForWebview(
+            this._sidebar.webview
+        );
 
-        webviewView.webview.postMessage;
-
-        webviewView.webview.onDidReceiveMessage(async (data) => {
+        this._sidebar.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
                 case 'create-user':
                     let createUserOptions: vscode.InputBoxOptions = {
@@ -61,7 +61,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             } else {
                                 try {
                                     await API.createUser(value);
-                                    webviewView.webview.postMessage({
+                                    this._sidebar!.webview.postMessage({
                                         command: 'create-user',
                                     });
                                     vscode.window.showInformationMessage(
@@ -93,7 +93,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                             try {
                                 await API.deleteUser(data.username);
-                                webviewView.webview.postMessage({
+                                this._sidebar!.webview.postMessage({
                                     command: 'delete-user',
                                 });
                                 vscode.window.showInformationMessage(
@@ -141,7 +141,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             data.username,
                             projectName
                         );
-                        webviewView.webview.postMessage({
+                        this._sidebar!.webview.postMessage({
                             command: 'create-project',
                         });
                         vscode.window.showInformationMessage(
@@ -189,7 +189,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     break;
                 case 'get-users':
                     let getUsersData = JSON.stringify(await API.getUsers());
-                    webviewView.webview.postMessage({
+                    this._sidebar!.webview.postMessage({
                         command: 'users',
                         data: getUsersData,
                     });
@@ -198,7 +198,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     let getProjectsData = JSON.stringify(
                         await API.getProjects(data.username)
                     );
-                    webviewView.webview.postMessage({
+                    this._sidebar!.webview.postMessage({
                         command: 'projects',
                         data: getProjectsData,
                     });
@@ -207,7 +207,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     let getProjectData = JSON.stringify(
                         await API.getProject(data.username, data.projectname)
                     );
-                    webviewView.webview.postMessage({
+                    this._sidebar!.webview.postMessage({
                         command: 'project',
                         data: getProjectData,
                     });
@@ -260,7 +260,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
 
     public revive(panel: vscode.WebviewView) {
-        this._view = panel;
+        this._sidebar = panel;
     }
 
     /**
@@ -351,7 +351,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 				<title>KIPR Wombat</title>
 			</head>
 			<body>
-				<div class="heading">Users</div>
+				<div class="refresh-header">
+                    <span class="heading">Users</span>
+                    <i class="codicon codicon-refresh pointer" id="refresh"></i>
+                </div>
 
 				<div class="select">
 					<select id="user-select">
@@ -393,5 +396,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 			</html>`;
     }
 
-    public refresh(): undefined {}
+    public refresh(): undefined {
+        if (this._sidebar === null) {
+            return;
+        }
+
+        this._sidebar?.webview.postMessage({ command: 'refresh' });
+    }
 }
