@@ -12,7 +12,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             'wombat-sidebar',
-            new SidebarProvider(context)
+            SidebarProvider.getInstance(context)
         )
     );
 
@@ -132,7 +132,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    let ws = new WebSocket();
+    const ws = new WebSocket(context);
     ws.listenOnTerminalOutput();
 }
 

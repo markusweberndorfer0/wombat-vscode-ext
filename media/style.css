@@ -56,3 +56,13 @@ select {
 .mr-4 {
     margin-right: 4px;
 }
+
+.refresh-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pointer {
+    cursor: pointer;
+}
