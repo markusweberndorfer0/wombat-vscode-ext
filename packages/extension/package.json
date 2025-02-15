@@ -1,0 +1,107 @@
+{
+    "name": "kipr-wombat-vscode-extension",
+    "displayName": "KIPR Wombat",
+    "description": "A extension which allows you to program the KIPR Wombat via Visual Studio Code",
+    "publisher": "markusweberndorfer0",
+    "icon": "media/logo.png",
+    "version": "0.0.4",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/markusplayzz/wombat-vscode-ext.git"
+    },
+    "engines": {
+        "vscode": "^1.88.0",
+        "npm": ">=10.9.2 <11.2.0",
+        "node": ">=22.13.1 <23.0.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [],
+    "main": "./out/extension.js",
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "wombat-sidebar-view",
+                    "title": "KIPR Wombat",
+                    "icon": "../../media/logo.png"
+                }
+            ]
+        },
+        "views": {
+            "wombat-sidebar-view": [
+                {
+                    "type": "webview",
+                    "id": "wombat-sidebar",
+                    "name": "KIPR Wombat",
+                    "icon": "../../media/logo.svg",
+                    "contextualTitle": "KIPR Wombat"
+                }
+            ]
+        },
+        "menus": {
+            "editor/title": [
+                {
+                    "command": "kipr-wombat-vscode-extension.compile",
+                    "group": "navigation"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.run",
+                    "group": "navigation"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.stop",
+                    "group": "navigation"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "kipr-wombat-vscode-extension.compile",
+                "title": "Compile active project",
+                "icon": "$(tools)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.run",
+                "title": "Run active project",
+                "icon": "$(play)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.stop",
+                "title": "Stop running project",
+                "icon": "$(debug-stop)",
+                "category": "Wombat"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src",
+        "test": "vscode-test",
+        "dev": "bash -exec 'code --extensionDevelopmentPath=$(pwd)'"
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.10",
+        "@types/node": "22.x",
+        "@types/socket.io-client": "^1.4.36",
+        "@types/vscode": "^1.88.0",
+        "@types/vscode-webview": "^1.57.0",
+        "@vscode/test-cli": "^0.0.10",
+        "@vscode/test-electron": "^2.4.1",
+        "typescript": "^5.7.3",
+        "@typescript-eslint/eslint-plugin": "^8.22.0",
+        "@typescript-eslint/parser": "^8.22.0",
+        "eslint": "^9.20.0"
+    },
+    "dependencies": {
+        "@vscode/codicons": "^0.0.36",
+        "axios": "^1.7.9",
+        "socket.io-client": "1.7.4"
+    }
+}
