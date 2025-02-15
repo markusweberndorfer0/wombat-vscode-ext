@@ -66,3 +66,20 @@ select {
 .pointer {
     cursor: pointer;
 }
+
+.file-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    div {
+        display: flex;
+        align-items: center;
+
+        i {
+            padding-right: 2px;
+            padding-left: 2px;
+            cursor: pointer;
+        }
+    }
+}

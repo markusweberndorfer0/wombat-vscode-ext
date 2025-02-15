@@ -29,7 +29,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             // Allow scripts in the webview
             enableScripts: true,
             localResourceRoots: [
-                vscode.Uri.joinPath(this._extensionUri, 'media'),
+                vscode.Uri.joinPath(
+                    this._extensionUri,
+                    'webview',
+                    'dist',
+                    'assets'
+                ),
                 vscode.Uri.joinPath(
                     this._extensionUri,
                     'node_modules',
@@ -255,6 +260,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     );
 
                     break;
+                case 'create-file':
+                    break;
             }
         });
     }
@@ -269,6 +276,37 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
      * @returns the created html
      */
     private _getHtmlForWebview(webview: vscode.Webview): string {
+        const dependencyNameList = ['index.css', 'index.js', 'vendor.js'];
+
+        const dependencyList: vscode.Uri[] = dependencyNameList.map((item) =>
+            webview.asWebviewUri(
+                vscode.Uri.joinPath(this._extensionUri, 'dist', 'assets', item)
+            )
+        );
+
+        const html = `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8" />
+            <link rel="icon" href="/favicon.ico" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Vite App</title>
+            <script>
+                const vscode = acquireVsCodeApi();
+            </script>
+            <script type="module" crossorigin src="${dependencyList[1]}"></script>
+            <link rel="modulepreload" href="${dependencyList[2]}">
+            <link rel="stylesheet" href="${dependencyList[0]}">
+        </head>
+        <body>
+            <div id="app"></div>
+        </body>
+        </html>
+        `;
+
+        return html;
+
+        /*
         // Local path to main script run in the webview
         const scriptPathOnDisk = vscode.Uri.joinPath(
             this._extensionUri,
@@ -323,14 +361,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         const stylesVSCodeUri = webview.asWebviewUri(stylesPathVSCodePath);
         const stylesMainUri = webview.asWebviewUri(stylesPathMainPath);
 
-        // Uri to load svg into webview
-        const svgPlusIcon = webview.asWebviewUri(svgPathPlusIcon);
-        const svgMinusIcon = webview.asWebviewUri(svgPathMinusIcon);
-
         // Use a nonce to only allow specific scripts to be run
         const nonce = getNonce();
 
-        return `<!DOCTYPE html>
+        const html = `<!DOCTYPE html>
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
@@ -373,15 +407,21 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 				</div>
                 
                 <div class="heading mt-15">Project files</div>
+                    <div class="file-header">
+                        <span class="heading-project-files">Include files</span>
+                        <div>
+                            <i class="codicon codicon-add" id="create-include-file"></i>
+                        </div>
+                    </div>
+                    <div id="include-project-files">
 
-                <!--<div class="heading-project-files">Include</div>
-                <div class="project-files">test.h</div>
-                <div class="project-files">test2.h</div>
-                <div class="project-files">test3.h</div>
-                <div class="project-files">test4.h</div>-->
-
-                <div class="heading-project-files">Source</div>
-                <div id="src-project-files">
+                    <div class="file-header">
+                        <span class="heading-project-files">Source files</span>
+                        <div>
+                            <i class="codicon codicon-add" id="create-src-file"></i>
+                        </div>
+                    </div>
+                    <div id="src-project-files">
                 </div>
 
                 <!--<div class="heading-project-files">Data</div>
@@ -394,6 +434,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 				</script>
 			</body>
 			</html>`;
+
+        return html;
+        */
     }
 
     public refresh(): undefined {

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { WombatOutputChannel } from './wombatOutputChannel';
-import { CompileResponse } from './models/compileRespone';
+import { CompileResponse } from './models/compileResponse';
 
 export class API {
     /**
@@ -164,6 +164,10 @@ export class API {
         if (apiResult.status !== 204) {
             throw new Error('Got response code ' + apiResult.status);
         }
+    }
+
+    public static async createFile(username: string, projectname: string) {
+        const apiUrl = 'http://192.168.125.1:8888/api/fs';
     }
 
     /**

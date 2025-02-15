@@ -10,6 +10,11 @@ const deleteUserButton = document.querySelector('#delete-user');
 const createProjectButton = document.querySelector('#create-project');
 const deleteProjectButton = document.querySelector('#delete-project');
 const srcProjectFiles = document.querySelector('#src-project-files');
+const includeProjectFiles = document.querySelector('#include-project-files');
+const createIncludeFile = document.querySelector('#create-include-file');
+const deleteIncludeFile = document.querySelector('#delete-include-file');
+const createSrcFile = document.querySelector('#create-src-file');
+const deleteSrcFile = document.querySelector('#delete-src-file');
 const refreshButton = document.querySelector('#refresh');
 
 // data
@@ -69,9 +74,16 @@ function setProjects() {
 
 function setProjectFiles() {
     // src files
+    includeProjectFiles.innerHTML = '';
     srcProjectFiles.innerHTML = '';
 
     if (projectData !== null) {
+        for (let i = 0; i < projectData.include_files.length; i++) {
+            includeProjectFiles.innerHTML += `<div class="project-files" onclick="openFile('${projectData.include_files[i].path}')" value="${projectData.include_files[i].name}">
+            ${projectData.include_files[i].name}
+            </div>`;
+        }
+
         for (let i = 0; i < projectData.source_files.length; i++) {
             srcProjectFiles.innerHTML += `<div class="project-files" onclick="openFile('${projectData.source_files[i].path}')" value="${projectData.source_files[i].name}">
             ${projectData.source_files[i].name}
@@ -238,15 +250,10 @@ projectSelect.addEventListener('change', async () => {
 refreshButton.addEventListener('click', () => {
     loadData();
 });
-
-window.addEventListener('message', (event) => {
-    const message = event.data; // The json data that the extension sent
-    switch (message.command) {
-        case 'reload-data':
-            //loadData();
-            break;
-    }
-});
+createIncludeFile.addEventListener('click', () => {});
+deleteIncludeFile.addEventListener('click', () => {});
+createSrcFile.addEventListener('click', () => {});
+deleteSrcFile.addEventListener('click', () => {});
 
 function configureUsersDataPromise() {
     return new Promise((resolve) => {
@@ -284,6 +291,28 @@ function configureProjectDataPromise() {
             if (event.data.command === 'project') {
                 projectData = JSON.parse(event.data.data);
                 setProjectFiles();
+                resolve();
+            }
+        });
+    });
+}
+
+/**
+ * creates a new file
+ * @param {'SRC' | 'INCLUDE'} filetype
+ * @returns Promise<undefined>
+ */
+function createFilePromise(filetype) {
+    return new Promise((resolve) => {
+        vscode.postMessage({
+            type: 'create-file',
+            username: currentUsername,
+            projectname: currentProjectname,
+            filetype,
+        });
+        window.addEventListener('message', async (event) => {
+            if (event.data.command === 'create-file') {
+                await loadData();
                 resolve();
             }
         });
