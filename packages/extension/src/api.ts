@@ -140,7 +140,6 @@ export class API {
      */
     public static async getFile(filepath: string) {
         let apiUrl: string = 'http://192.168.125.1:8888/api/fs' + filepath;
-
         let apiResult: any = await axios.get(apiUrl);
         if (apiResult.status === 200) {
             return apiResult.data;
@@ -166,8 +165,35 @@ export class API {
         }
     }
 
-    public static async createFile(username: string, projectname: string) {
-        const apiUrl = 'http://192.168.125.1:8888/api/fs';
+    /**
+     * Creates a file on the wombat fs
+     * @param path api dir path
+     * @param filename
+     */
+    public static async createFile(
+        path: string,
+        filename: string
+    ): Promise<void> {
+        const apiUrl = 'http://192.168.125.1:8888' + path;
+        const apiData = { name: filename, type: 'file', content: '' };
+
+        const apiResult = await axios.post(apiUrl, apiData);
+        if (apiResult.status !== 201) {
+            throw new Error('Error while trying to create file');
+        }
+    }
+
+    /**
+     * Deletes a file on wombat fs
+     * @param path api file path
+     */
+    public static async deleteFile(path: string) {
+        const apiUrl = 'http://192.168.125.1:8888' + path;
+
+        const apiResult = await axios.delete(apiUrl);
+        if (apiResult.status !== 204) {
+            throw new Error('Error while trying to delete file');
+        }
     }
 
     /**

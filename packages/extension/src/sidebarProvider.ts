@@ -178,6 +178,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                     data.username,
                                     data.projectname
                                 );
+                                this._sidebar!.webview.postMessage({
+                                    command: 'delete-project',
+                                });
                                 vscode.window.showInformationMessage(
                                     'Project was deleted'
                                 );
@@ -202,15 +205,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     this._sidebar!.webview.postMessage({
                         command: 'projects',
                         data: getProjectsData,
-                    });
-                    break;
-                case 'get-project':
-                    let getProjectData = JSON.stringify(
-                        await API.getProject(data.username, data.projectname)
-                    );
-                    this._sidebar!.webview.postMessage({
-                        command: 'project',
-                        data: getProjectData,
                     });
                     break;
                 case 'open-file':
@@ -257,6 +251,65 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
                     break;
                 case 'create-file':
+                    let createFileOptions: vscode.InputBoxOptions = {
+                        prompt: 'Enter filename (without extension)',
+                        placeHolder: 'Filename',
+                    };
+
+                    vscode.window
+                        .showInputBox(createFileOptions)
+                        .then(async (value) => {
+                            if (!value) {
+                                vscode.window.showErrorMessage(
+                                    'No filename given, no file created'
+                                );
+                            } else {
+                                try {
+                                    const filename = value + data.extension;
+
+                                    await API.createFile(data.path, filename);
+                                    this._sidebar!.webview.postMessage({
+                                        command: 'create-file',
+                                    });
+                                    vscode.window.showInformationMessage(
+                                        'File ' + filename + ' was created'
+                                    );
+                                } catch (e) {
+                                    vscode.window.showErrorMessage(`${e}`);
+                                }
+                            }
+                        });
+                    break;
+                case 'delete-file':
+                    vscode.window
+                        .showInformationMessage(
+                            'Do you really want to delete ' +
+                                data.filename +
+                                '?',
+                            'Yes',
+                            'No'
+                        )
+                        .then(async (answer) => {
+                            if (answer !== 'Yes') {
+                                vscode.window.showInformationMessage(
+                                    "File wasn't deleted!"
+                                );
+
+                                return;
+                            }
+
+                            try {
+                                await API.deleteFile(data.path);
+                                this._sidebar!.webview.postMessage({
+                                    command: 'delete-file',
+                                });
+                                vscode.window.showInformationMessage(
+                                    'File was deleted'
+                                );
+                            } catch (e) {
+                                vscode.window.showErrorMessage(`${e}`);
+                            }
+                        });
                     break;
             }
         });
