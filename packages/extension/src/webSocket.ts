@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 import * as vscode from 'vscode';
-import { WombatOutputChannel } from './wombatOutputChannel';
-import { SidebarProvider } from './sidebarProvider';
+import { WombatOutputChannel } from './wombatOutputChannel.js';
+import { SidebarProvider } from './sidebarProvider.js';
 
 export class WebSocket {
     private sidebar;

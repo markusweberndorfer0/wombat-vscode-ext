@@ -131,3 +131,4 @@ dist
 
 # exclude compiled extension
 kipr-wombat-vscode-extension-*.vsix
+vue-dist/

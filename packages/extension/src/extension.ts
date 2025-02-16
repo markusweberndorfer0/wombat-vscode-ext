@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { SidebarProvider } from './sidebarProvider';
+import { SidebarProvider } from './sidebarProvider.js';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { API } from './api';
-import { WebSocket } from './webSocket';
-import { Config } from './models/config';
-import { WombatOutputChannel } from './wombatOutputChannel';
+import { API } from './api.js';
+import { WebSocket } from './webSocket.js';
+import { WombatOutputChannel } from './wombatOutputChannel.js';
+import { Config } from '../../shared/models/config.js';
 
 export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(

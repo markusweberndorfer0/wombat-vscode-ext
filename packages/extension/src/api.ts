@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { WombatOutputChannel } from './wombatOutputChannel';
-import { CompileResponse } from './models/compileResponse';
+import { WombatOutputChannel } from './wombatOutputChannel.js';
+import { CompileResponse } from '../../shared/models/compileResponse.js';
 
 export class API {
     /**

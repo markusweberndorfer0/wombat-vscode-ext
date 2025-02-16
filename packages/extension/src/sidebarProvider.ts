@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { API } from './api';
+import { API } from './api.js';
 import os from 'os';
 import fs from 'fs';
 
@@ -37,6 +37,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     '@vscode/codicons',
                     'dist'
                 ),
+                vscode.Uri.joinPath(this._extensionUri, '..', '..', 'media'),
             ],
         };
 
@@ -271,16 +272,36 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
      * @returns the created html
      */
     private _getHtmlForWebview(webview: vscode.Webview): string {
-        const dependencyNameList = ['index.css', 'index.js'];
+        const vueDependencyNameList = ['index.css', 'index.js'];
 
-        const dependencyList: vscode.Uri[] = dependencyNameList.map((item) =>
-            webview.asWebviewUri(
-                vscode.Uri.joinPath(
-                    this._extensionUri,
-                    'vue-dist',
-                    'assets',
-                    item
+        const vueDependencyList: vscode.Uri[] = vueDependencyNameList.map(
+            (item) =>
+                webview.asWebviewUri(
+                    vscode.Uri.joinPath(
+                        this._extensionUri,
+                        'vue-dist',
+                        'assets',
+                        item
+                    )
                 )
+        );
+
+        const styleResetUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(
+                this._extensionUri,
+                '..',
+                '..',
+                'media',
+                'reset.css'
+            )
+        );
+        const stylesPathVSCodeUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(
+                this._extensionUri,
+                '..',
+                '..',
+                'media',
+                'vscode.css'
             )
         );
 
@@ -303,16 +324,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             <meta charset="UTF-8" />
             <link rel="icon" href="/favicon.ico" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <script>
-                const vscode = acquireVsCodeApi();
-            </script>
-            <script type="module" crossorigin src="${dependencyList[1]}"></script>
-            <link rel="stylesheet" href="${dependencyList[0]}">
+            <script type="module" crossorigin src="${vueDependencyList[1]}"></script>
+            <link rel="stylesheet" href="${vueDependencyList[0]}">
             <link rel="stylesheet" href="${codiconsUri}">
+            <link rel="stylesheet" href="${styleResetUri}">
+            <link rel="stylesheet" href="${stylesPathVSCodeUri}">
         </head>
         <body>
             <div id="app"></div>
-            <i class="codicon codicon-add" id="create-include-file"></i>
         </body>
         </html>
         `;

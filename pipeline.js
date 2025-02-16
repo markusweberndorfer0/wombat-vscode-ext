@@ -1,17 +1,17 @@
-const cp = require("child_process");
-const util = require("util");
+import { exec as _exec, execSync } from "child_process";
+import { promisify } from "util";
 
 const childOptions = {
   shell: "bash",
   stdio: "inherit",
 };
 
-const exec = util.promisify(cp.exec);
+const exec = promisify(_exec);
 
 (async () => {
   await Promise.all([
-    cp.exec("cd packages/webview/ && npm run build", childOptions),
-    cp.exec("cd packages/extension/ && npm run compile", childOptions),
+    _exec("cd packages/webview/ && npm run build", childOptions),
+    _exec("cd packages/extension/ && npm run compile", childOptions),
   ]);
-  cp.execSync("cd packages/extension/ && npm run dev", childOptions);
+  execSync("cd packages/extension/ && npm run dev", childOptions);
 })();
