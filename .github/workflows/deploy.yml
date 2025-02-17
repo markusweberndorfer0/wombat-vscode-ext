@@ -14,7 +14,9 @@ jobs:
       - name: Build webview
         run: cd packages/webview && npm run build
       - name: Publish to Visual Studio Marketplace
+        id: publishToMarketplace
         uses: HaaLeo/publish-vscode-extension@v1
         with:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
+          packagePath: packages/extension
