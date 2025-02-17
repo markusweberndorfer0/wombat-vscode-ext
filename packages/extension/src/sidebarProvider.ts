@@ -364,7 +364,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         return html;
     }
 
-    public refresh(): undefined {
+    public refresh(): void {
         if (this._sidebar === null) {
             return;
         }
