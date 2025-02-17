@@ -2,26 +2,41 @@
 
 ## Contributors
 
--   Markus Weberndorfer
+- Markus Weberndorfer
 
-## Features
+## How 2 develop
 
--   Create/Delete Wombat Users
--   Create/Delete C Projects on the Wombat
--   Open/Save(Auto-Upload) Source files of your wombat
--   Compile C Projects of your wombat
--   Run/Stop Wombat projects
--   Display Wombat project output
+Install dependencies
 
-## Requirements
+```bash
+npm i
+```
 
--   Established connection to the Wombat
+Start watcher
 
-## Known Issues
+```bash
+npm run watch
+```
 
--   No code completion
--   No recognition of the official `kipr/wombat.h` library
+Start developing.
+
+## How 2 package
+
+Change to webview dir and build
+
+```bash
+cd ./packages/webview && npm run build
+```
+
+Change to extension and package
+
+```bash
+npm install -g @vscode/vsce # if vsce not installed
+cd ../extension && vsce package --out ../../
+```
+
+Now the package is located in the root directory
 
 ## Release Notes
 
-[CHANGELOG.md](./CHANGELOG.md)
+[CHANGELOG.md](./packages/extension/CHANGELOG.md)

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "Node16",
+    "declaration": true,
+    "declarationMap": true,
+    "rootDir": ".",
+    "composite": true,
+    "outDir": "out"
+  },
+  "references": []
+}

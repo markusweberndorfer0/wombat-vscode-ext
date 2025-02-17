@@ -5,8 +5,8 @@ import path from 'path';
 import os from 'os';
 import { API } from './api';
 import { WebSocket } from './webSocket';
-import { Config } from './models/config';
 import { WombatOutputChannel } from './wombatOutputChannel';
+import { Config } from '../../shared/models/config';
 
 export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(

@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { getNonce } from './getNonce';
 import { API } from './api';
 import os from 'os';
 import fs from 'fs';
@@ -29,13 +28,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             // Allow scripts in the webview
             enableScripts: true,
             localResourceRoots: [
+                vscode.Uri.joinPath(this._extensionUri, 'vue-dist', 'assets'),
                 vscode.Uri.joinPath(this._extensionUri, 'media'),
-                vscode.Uri.joinPath(
-                    this._extensionUri,
-                    'node_modules',
-                    '@vscode/codicons',
-                    'dist'
-                ),
             ],
         };
 
@@ -112,9 +106,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         placeHolder: 'Name of new project',
                     };
 
-                    const projectName = await vscode.window.showInputBox(
-                        createProjectOptions
-                    );
+                    const projectName =
+                        await vscode.window.showInputBox(createProjectOptions);
                     if (!projectName) {
                         vscode.window.showErrorMessage(
                             'No project name given, no project created'
@@ -177,6 +170,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                                     data.username,
                                     data.projectname
                                 );
+                                this._sidebar!.webview.postMessage({
+                                    command: 'delete-project',
+                                });
                                 vscode.window.showInformationMessage(
                                     'Project was deleted'
                                 );
@@ -201,15 +197,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     this._sidebar!.webview.postMessage({
                         command: 'projects',
                         data: getProjectsData,
-                    });
-                    break;
-                case 'get-project':
-                    let getProjectData = JSON.stringify(
-                        await API.getProject(data.username, data.projectname)
-                    );
-                    this._sidebar!.webview.postMessage({
-                        command: 'project',
-                        data: getProjectData,
                     });
                     break;
                 case 'open-file':
@@ -255,6 +242,67 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     );
 
                     break;
+                case 'create-file':
+                    let createFileOptions: vscode.InputBoxOptions = {
+                        prompt: 'Enter filename (without extension)',
+                        placeHolder: 'Filename',
+                    };
+
+                    vscode.window
+                        .showInputBox(createFileOptions)
+                        .then(async (value) => {
+                            if (!value) {
+                                vscode.window.showErrorMessage(
+                                    'No filename given, no file created'
+                                );
+                            } else {
+                                try {
+                                    const filename = value + data.extension;
+
+                                    await API.createFile(data.path, filename);
+                                    this._sidebar!.webview.postMessage({
+                                        command: 'create-file',
+                                    });
+                                    vscode.window.showInformationMessage(
+                                        'File ' + filename + ' was created'
+                                    );
+                                } catch (e) {
+                                    vscode.window.showErrorMessage(`${e}`);
+                                }
+                            }
+                        });
+                    break;
+                case 'delete-file':
+                    vscode.window
+                        .showInformationMessage(
+                            'Do you really want to delete ' +
+                                data.filename +
+                                '?',
+                            'Yes',
+                            'No'
+                        )
+                        .then(async (answer) => {
+                            if (answer !== 'Yes') {
+                                vscode.window.showInformationMessage(
+                                    "File wasn't deleted!"
+                                );
+
+                                return;
+                            }
+
+                            try {
+                                await API.deleteFile(data.path);
+                                this._sidebar!.webview.postMessage({
+                                    command: 'delete-file',
+                                });
+                                vscode.window.showInformationMessage(
+                                    'File was deleted'
+                                );
+                            } catch (e) {
+                                vscode.window.showErrorMessage(`${e}`);
+                            }
+                        });
+                    break;
             }
         });
     }
@@ -269,134 +317,54 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
      * @returns the created html
      */
     private _getHtmlForWebview(webview: vscode.Webview): string {
-        // Local path to main script run in the webview
-        const scriptPathOnDisk = vscode.Uri.joinPath(
-            this._extensionUri,
-            'media',
-            'main.js'
+        const vueDependencyNameList = ['index.css', 'index.js'];
+
+        const vueDependencyList: vscode.Uri[] = vueDependencyNameList.map(
+            (item) =>
+                webview.asWebviewUri(
+                    vscode.Uri.joinPath(
+                        this._extensionUri,
+                        'vue-dist',
+                        'assets',
+                        item
+                    )
+                )
+        );
+
+        const styleResetUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css')
+        );
+        const stylesPathVSCodeUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css')
         );
 
         const codiconsUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(
-                this._extensionUri,
-                'node_modules',
-                '@vscode/codicons',
-                'dist',
-                'codicon.css'
-            )
+            vscode.Uri.joinPath(this._extensionUri, 'media', 'codicon.css')
         );
 
-        // And the uri we use to load this script in the webview
-        const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
+        const html = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8" />
+            <link rel="icon" href="/favicon.ico" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <script type="module" crossorigin src="${vueDependencyList[1]}"></script>
+            <link rel="stylesheet" href="${vueDependencyList[0]}">
+            <link rel="stylesheet" href="${codiconsUri}">
+            <link rel="stylesheet" href="${styleResetUri}">
+            <link rel="stylesheet" href="${stylesPathVSCodeUri}">
+        </head>
+        <body>
+            <div id="app"></div>
+        </body>
+        </html>
+        `;
 
-        // Local path to css styles
-        const styleResetPath = vscode.Uri.joinPath(
-            this._extensionUri,
-            'media',
-            'reset.css'
-        );
-        const stylesPathVSCodePath = vscode.Uri.joinPath(
-            this._extensionUri,
-            'media',
-            'vscode.css'
-        );
-        const stylesPathMainPath = vscode.Uri.joinPath(
-            this._extensionUri,
-            'media',
-            'style.css'
-        );
-
-        // Local path to svg files
-        const svgPathPlusIcon = vscode.Uri.joinPath(
-            this._extensionUri,
-            'media',
-            'plus-svgrepo-com.svg'
-        );
-        const svgPathMinusIcon = vscode.Uri.joinPath(
-            this._extensionUri,
-            'media',
-            'minus-svgrepo-com.svg'
-        );
-
-        // Uri to load styles into webview
-        const stylesResetUri = webview.asWebviewUri(styleResetPath);
-        const stylesVSCodeUri = webview.asWebviewUri(stylesPathVSCodePath);
-        const stylesMainUri = webview.asWebviewUri(stylesPathMainPath);
-
-        // Uri to load svg into webview
-        const svgPlusIcon = webview.asWebviewUri(svgPathPlusIcon);
-        const svgMinusIcon = webview.asWebviewUri(svgPathMinusIcon);
-
-        // Use a nonce to only allow specific scripts to be run
-        const nonce = getNonce();
-
-        return `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-
-				<!--
-					Use a content security policy to only allow loading images from https or from our extension directory,
-					and only allow scripts that have a specific nonce.
-				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${webview.cspSource}; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'unsafe-inline';script-src-elem 'nonce-${nonce}';">
-
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-				<link href="${stylesResetUri}" rel="stylesheet">
-				<link href="${stylesVSCodeUri}" rel="stylesheet">
-				<link href="${stylesMainUri}" rel="stylesheet">
-                <link href="${codiconsUri}" rel="stylesheet" />
-
-				<title>KIPR Wombat</title>
-			</head>
-			<body>
-				<div class="refresh-header">
-                    <span class="heading">Users</span>
-                    <i class="codicon codicon-refresh pointer" id="refresh"></i>
-                </div>
-
-				<div class="select">
-					<select id="user-select">
-					</select>
-                    <i class="codicon codicon-add" id="create-user"></i>
-                    <i class="codicon codicon-remove" id="delete-user"></i>
-				</div>
-
-                <div class="heading mt-15">Projects</div>
-
-                <div class="select">
-					<select id="project-select">
-					</select>
-                    <i class="codicon codicon-add" id="create-project"></i>
-                    <i class="codicon codicon-remove" id="delete-project"></i>
-				</div>
-                
-                <div class="heading mt-15">Project files</div>
-
-                <!--<div class="heading-project-files">Include</div>
-                <div class="project-files">test.h</div>
-                <div class="project-files">test2.h</div>
-                <div class="project-files">test3.h</div>
-                <div class="project-files">test4.h</div>-->
-
-                <div class="heading-project-files">Source</div>
-                <div id="src-project-files">
-                </div>
-
-                <!--<div class="heading-project-files">Data</div>
-                <div class="project-files">data.dat</div>
-                <div class="project-files">data2.dat</div>
-                <div class="project-files">data3.dat</div>
-                <div class="project-files">data4.dat</div>-->
-
-				<script nonce="${nonce}" src="${scriptUri}">
-				</script>
-			</body>
-			</html>`;
+        return html;
     }
 
-    public refresh(): undefined {
+    public refresh(): void {
         if (this._sidebar === null) {
             return;
         }
