@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { API } from './api.js';
+import { API } from './api';
 import os from 'os';
 import fs from 'fs';
 
@@ -29,15 +29,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             enableScripts: true,
             localResourceRoots: [
                 vscode.Uri.joinPath(this._extensionUri, 'vue-dist', 'assets'),
-                vscode.Uri.joinPath(
-                    this._extensionUri,
-                    '..',
-                    '..',
-                    'node_modules',
-                    '@vscode/codicons',
-                    'dist'
-                ),
-                vscode.Uri.joinPath(this._extensionUri, '..', '..', 'media'),
+                vscode.Uri.joinPath(this._extensionUri, 'media'),
             ],
         };
 
@@ -340,34 +332,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         );
 
         const styleResetUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(
-                this._extensionUri,
-                '..',
-                '..',
-                'media',
-                'reset.css'
-            )
+            vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css')
         );
         const stylesPathVSCodeUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(
-                this._extensionUri,
-                '..',
-                '..',
-                'media',
-                'vscode.css'
-            )
+            vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css')
         );
 
         const codiconsUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(
-                this._extensionUri,
-                '..',
-                '..',
-                'node_modules',
-                '@vscode/codicons',
-                'dist',
-                'codicon.css'
-            )
+            vscode.Uri.joinPath(this._extensionUri, 'media', 'codicon.css')
         );
 
         const html = `

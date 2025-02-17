@@ -15,7 +15,7 @@
       </option>
     </select>
     <i class="codicon codicon-add pl-1 pr-0.5 cursor-pointer" @click="createUser()"></i>
-    <i class="codicon codicon-remove px-0.5 cursor-pointer" @click="deleteUser()"></i>
+    <i class="codicon codicon-remove pl-0.5 cursor-pointer" @click="deleteUser()"></i>
   </div>
 
   <div class="mt-3 mb-1 text-sm uppercase font-bold">Projects</div>
@@ -23,14 +23,14 @@
   <div class="flex flex-row justify-around items-center">
     <select
       class="text-[13px] w-full bg-[var(--vscode-button-secondaryBackground)] text-[var(--vscode-foreground)]"
-      v-model="currentProject"
+      v-model="currentProjectName"
     >
-      <option v-for="(project, index) in projects" :key="index" :value="project">
+      <option v-for="(project, index) in projects" :key="index" :value="project.name">
         {{ project.name }} ({{ project.parameters.language }})
       </option>
     </select>
     <i class="codicon codicon-add pl-1 pr-0.5 cursor-pointer" @click="createProject()"></i>
-    <i class="codicon codicon-remove px-0.5 cursor-pointer" @click="deleteProject()"></i>
+    <i class="codicon codicon-remove pl-0.5 cursor-pointer" @click="deleteProject()"></i>
   </div>
 
   <div class="mt-3 text-sm uppercase font-bold">Project files</div>
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, type Ref } from 'vue';
+import { computed, onMounted, ref, type ComputedRef, type Ref } from 'vue';
 import { type ProjectModel } from '../../shared/models/projectModel';
 
 const vscode = acquireVsCodeApi();
@@ -95,7 +95,7 @@ window.addEventListener('message', (event) => {
 });
 
 const currentUsername: Ref<string | undefined> = ref(undefined);
-const currentProject: Ref<ProjectModel | undefined> = ref(undefined);
+const currentProjectName: Ref<string | undefined> = ref(undefined);
 
 const users = ref([] as any[]);
 const usernames = ref([] as string[]);
@@ -105,6 +105,10 @@ const projects = ref([] as ProjectModel[]);
 onMounted(() => {
   reload();
 });
+
+const currentProject: ComputedRef<ProjectModel | undefined> = computed(() =>
+  projects.value.find((project) => project.name === currentProjectName.value),
+);
 
 async function reload() {
   await loadUsers();
@@ -142,8 +146,15 @@ async function loadProjectsByCurrentUser() {
       projectLinks.value = JSON.parse(event.data.data).links;
       projects.value = JSON.parse(event.data.data).projects as ProjectModel[];
 
-      if (currentProject.value === undefined || !projects.value.includes(currentProject.value)) {
-        currentProject.value = projects.value[0] || undefined;
+      if (
+        currentProject.value === undefined ||
+        !projects.value.some(
+          (project) =>
+            project.name === currentProject.value?.name &&
+            project.parameters.user === currentProject.value?.parameters.user,
+        )
+      ) {
+        currentProjectName.value = projects.value[0].name || undefined;
       }
 
       resolve(undefined);

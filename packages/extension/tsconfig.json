@@ -5,14 +5,8 @@
         "outDir": "out",
         "lib": ["ES2022"],
         "sourceMap": true,
-        "rootDir": "src",
         "strict": true,
         "moduleResolution": "node16"
     },
-    "exclude": ["node_modules", ".vscode-test"],
-    "references": [
-        {
-            "path": "../shared"
-        }
-    ]
+    "exclude": ["node_modules", ".vscode-test"]
 }

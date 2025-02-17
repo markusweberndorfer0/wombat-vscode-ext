@@ -1,34 +1,37 @@
 name: Build and Test
 
 on:
-    push:
-        branches: ['main']
-    pull_request:
-        branches: ['main']
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Install node and npm
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '22.x'
-                  cache: 'npm'
+      - name: Install node and npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: "npm"
 
-            - name: Install Xvfb
-              run: sudo apt-get install -y xvfb
+      - name: Install Xvfb
+        run: sudo apt-get install -y xvfb
 
-            - name: Start Xvfb
-              run: Xvfb :99 & export DISPLAY=:99
+      - name: Start Xvfb
+        run: Xvfb :99 & export DISPLAY=:99
 
-            - name: Install npm packages
-              run: npm ci
+      - name: Install npm packages
+        run: npm ci
 
-            - name: Run tests
-              run: npm run test
-              env:
-                  DISPLAY: :99
+      - name: Build webview
+        run: cd packages/webview && npm run build
+
+      - name: Run tests
+        run: cd packages/extension && npm run test
+        env:
+          DISPLAY: :99
