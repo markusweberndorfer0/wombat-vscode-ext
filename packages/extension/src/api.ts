@@ -255,7 +255,7 @@ export class API {
         } else if (![200, 201, 204].includes(apiResult.status)) {
             throw new Error('Got response code ' + apiResult.status);
         } else {
-            WombatOutputChannel.showAndClearWombatOutputChannel();
+            WombatOutputChannel.show();
         }
     }
 

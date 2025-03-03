@@ -24,7 +24,7 @@ export class WebSocket {
         } as SocketIOClient.ConnectOpts);
 
         socket.on('stdout', (line: string) => {
-            WombatOutputChannel.appendToOutputChannel(line);
+            WombatOutputChannel.print(line);
         });
 
         socket.on('disconnect', () => {

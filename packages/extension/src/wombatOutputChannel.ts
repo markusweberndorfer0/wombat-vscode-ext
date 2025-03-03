@@ -3,20 +3,28 @@ import * as vscode from 'vscode';
 export class WombatOutputChannel {
     private static wombatOutput = vscode.window.createOutputChannel('Wombat');
 
-    /**
-     * Clears the output in the wombat channel
-     * and shows the channel
-     */
-    public static showAndClearWombatOutputChannel() {
-        this.wombatOutput.clear();
+    public static show() {
         this.wombatOutput.show();
+    }
+
+    public static clear() {
+        this.wombatOutput.clear();
     }
 
     /**
      * appends a str to output channel
      * @param str
      */
-    public static appendToOutputChannel(str: string) {
+    public static print(str: string) {
         this.wombatOutput.append(str);
+    }
+
+    /**
+     * appends a str to output channel with a newline
+     * @param str
+     */
+    public static println(str: string) {
+        this.wombatOutput.append(str);
+        this.wombatOutput.append('\n');
     }
 }
