@@ -50,16 +50,16 @@ export async function compileProject(e: any) {
     WombatOutputChannel.show();
 
     try {
-        WombatOutputChannel.print("Compiling...\n");
+        WombatOutputChannel.println("Compiling...");
         const returnStr = await API.compileProject(
             config.username,
             config.projectname
         );
-        WombatOutputChannel.print(returnStr + '\n');
+        WombatOutputChannel.println(returnStr);
     } catch (e) {
-        vscode.window.showErrorMessage(
-            `There were errors compiling ${config.username}/${config.projectname} -> ${e}`
-        );
+        vscode.window.showErrorMessage(`There were errors compiling '${config.username}/${config.projectname}' -> ${e}`);
+        WombatOutputChannel.println(`There were errors compiling '${config.username}/${config.projectname}' -> ${e}`);
+        WombatOutputChannel.show();
     }
 
     currentActionCompleted = true;
@@ -78,19 +78,17 @@ export async function runProject(e: any) {
     }
 
     if (savedSinceLastCompile === true) {
-        WombatOutputChannel.print("File has been changed, compiling...\n");
+        WombatOutputChannel.println("File has been changed, compiling...");
         await compileProject(e);
     }
 
     try {
+        WombatOutputChannel.println(`Running '${config.username}/${config.projectname}'...`);
         await API.runProject(config.username, config.projectname);
-        // WombatOutputChannel.println(
-        //     `The project ${config.username}/${config.projectname} is running`
-        // );
     } catch (e) {
-        vscode.window.showErrorMessage(
-            `There were errors while trying to run ${config.username}/${config.projectname} -> ${e}`
-        );
+        vscode.window.showErrorMessage(`There were errors while trying to run '${config.username}/${config.projectname}'`);
+        WombatOutputChannel.println(`There were errors while trying to run '${config.username}/${config.projectname}' -> ${e}`);
+        WombatOutputChannel.show();
     }
 
     currentActionCompleted = true;
@@ -99,9 +97,11 @@ export async function runProject(e: any) {
 export async function stopProject() {
     try {
         await API.stopProject();
-        WombatOutputChannel.println('The running project was stopped.\n');
+        WombatOutputChannel.println('The running project was stopped.');
     } catch (e) {
-        vscode.window.showErrorMessage('There was a problem stopping the project');
+        vscode.window.showErrorMessage(`There was an error stopping the project`);
+        WombatOutputChannel.println(`There was an error stopping the project -> ${e}`);
+        WombatOutputChannel.show();
     }
 }
 
@@ -124,6 +124,8 @@ export async function autosaveWombatFile(e: vscode.TextDocument) {
             await API.putFile(config.filepathOnWombat, encodedContent);
         } catch (e) {
             vscode.window.showErrorMessage(`There were errors saving the file -> ${e}`);
+            WombatOutputChannel.println(`There were errors saving the file -> ${e}`);
+            WombatOutputChannel.show();
         }
     }
 }
