@@ -14,5 +14,6 @@
   "env": {
     "NODE_ENV": "development"
   },
-  "ext": "js,json,ts,vue"
+  "ext": "js,json,ts,vue",
+  "signal": "SIGTERM"
 }

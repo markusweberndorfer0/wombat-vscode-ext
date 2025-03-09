@@ -4,6 +4,17 @@
 
 - Markus Weberndorfer
 
+## Setting up symlink support
+
+> ONLY required for Windows users
+
+Do these things BEFORE cloning the repo:
+
+1. Activate Developer Mode in Settings
+2. Enable git symlinks: `git config --global core.symlinks true`
+
+If symlinks still don't work with the given settings, see this StackOverflow answer: https://stackoverflow.com/a/59761201
+
 ## How 2 develop
 
 Install dependencies
