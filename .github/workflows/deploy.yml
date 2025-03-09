@@ -13,6 +13,10 @@ jobs:
         run: npm ci
       - name: Build webview
         run: cd packages/webview && npm run build
+      - name: Install vsce
+        run: npm i -D @vscode/vsce
+      - name: Package extension
+        run: cd packages/extension && npx @vscode/vsce package --out ../../extension.vsix
       - name: Publish to Visual Studio Marketplace
         id: publishToMarketplace
         uses: HaaLeo/publish-vscode-extension@v1
@@ -20,3 +24,4 @@ jobs:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
           packagePath: packages/extension
+          extensionFile: extension.vsix
