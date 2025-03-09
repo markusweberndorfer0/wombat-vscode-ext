@@ -3,7 +3,7 @@
     "displayName": "KIPR Wombat",
     "description": "A extension which allows you to program the KIPR Wombat via Visual Studio Code",
     "publisher": "markusweberndorfer0",
-    "icon": "./media/logo.png",
+    "icon": "media/logo.png",
     "version": "0.1.0",
     "repository": {
         "type": "git",
@@ -25,7 +25,7 @@
                 {
                     "id": "wombat-sidebar-view",
                     "title": "KIPR Wombat",
-                    "icon": "./media/logo.png"
+                    "icon": "media/logo.png"
                 }
             ]
         },
