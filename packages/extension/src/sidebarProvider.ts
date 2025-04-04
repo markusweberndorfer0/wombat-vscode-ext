@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { API } from './api';
 import os from 'os';
 import fs from 'fs';
+import { backupProject } from './util';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     private static instance: SidebarProvider | null = null;
@@ -303,6 +304,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             }
                         });
                     break;
+                case 'backup-project':
+                    const path: string =
+                        os.tmpdir() +
+                        '/vscode_wombat_ext/' +
+                        data.username +
+                        '/' +
+                        data.projectname;
+
+                    backupProject(path);
             }
         });
     }
