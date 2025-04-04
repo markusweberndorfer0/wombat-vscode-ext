@@ -120,17 +120,12 @@ async function reload() {
   await loadProjectsByCurrentUser();
 }
 
-async function onProjectChange(username: string, projectname: string) {
-  return new Promise((resolve) => {
-    addOneTimeCodeListenerPromise('backup-project', () => {
-      resolve(undefined);
-    });
-
-    vscode.postMessage({
-      type: 'backup-project',
-      username,
-      projectname,
-    });
+function onProjectChange(username: string, projectname: string) {
+  vscode.postMessage({
+    type: 'save-backup-project',
+    username,
+    projectname,
+    project: JSON.stringify(currentProject.value),
   });
 }
 
@@ -192,6 +187,7 @@ function openFile(path: string) {
     filepath: path,
     username: currentUsername.value,
     projectname: currentProject.value?.name,
+    project: JSON.stringify(currentProject.value),
   });
 }
 

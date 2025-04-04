@@ -1,7 +1,15 @@
 import fs from 'node:fs';
 import fse from 'fs-extra';
+import { API } from './api';
+import os from 'node:os';
+import { ProjectModel } from '../../shared/models/projectModel';
 
-export function backupProject(projectDir: string) {
+export function saveAndBackupProject(
+    username: string,
+    projectname: string,
+    projectDir: string,
+    project: ProjectModel
+) {
     try {
         if (!fs.existsSync(projectDir)) {
             return;
@@ -13,8 +21,58 @@ export function backupProject(projectDir: string) {
     const backupPath = `${projectDir}.bak`;
 
     if (fs.existsSync(backupPath)) {
-        fs.rmdirSync(backupPath);
+        fs.rmSync(backupPath, { recursive: true });
     }
 
-    fse.copySync(projectDir, backupPath);
+    fse.moveSync(projectDir, backupPath);
+
+    if (!!project.source_files) {
+        project.source_files.forEach((sourceFile) => {
+            downloadFile(username, projectname, sourceFile.path);
+        });
+    }
+
+    if (!!project.include_files) {
+        project.include_files.forEach((includeFile) => {
+            downloadFile(username, projectname, includeFile.path);
+        });
+    }
+}
+
+/**
+ * Downloads a file from wombat
+ * @param username
+ * @param projectname
+ * @param filepath
+ * @returns path of downloaded file
+ */
+export async function downloadFile(
+    username: string,
+    projectname: string,
+    filepath: string
+): Promise<string> {
+    let getFileData: any = await API.getFile(filepath);
+
+    let fileDir: string =
+        os.tmpdir() + '/vscode_wombat_ext/' + username + '/' + projectname;
+
+    if (!fs.existsSync(fileDir)) {
+        fs.mkdirSync(fileDir, { recursive: true });
+    }
+
+    let codeFilePath: string = fileDir + '/' + getFileData.name;
+
+    let configData: any = {
+        filepathOnWombat: getFileData.path,
+        username,
+        projectname,
+    };
+
+    let configFilepath: string = fileDir + '/' + getFileData.name + '.json';
+
+    let decodedFileContent: string = atob(getFileData.content);
+    fs.writeFileSync(codeFilePath, decodedFileContent);
+    fs.writeFileSync(configFilepath, JSON.stringify(configData));
+
+    return codeFilePath;
 }
