@@ -11,9 +11,13 @@
   },
   "private": true,
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "lerna": "^8.1.9",
     "nodemon": "^3.1.9",
     "typescript": "^5.7.3"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "fs-extra": "^11.3.0"
+  }
 }

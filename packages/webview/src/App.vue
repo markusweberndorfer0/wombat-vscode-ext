@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, type ComputedRef, type Ref } from 'vue';
+import { computed, onMounted, ref, watch, type ComputedRef, type Ref } from 'vue';
 import { type ProjectModel } from '../../shared/models/projectModel';
 
 const vscode = acquireVsCodeApi();
@@ -102,17 +102,31 @@ const usernames = ref([] as string[]);
 const projectLinks = ref([] as any[]);
 const projects = ref([] as ProjectModel[]);
 
-onMounted(() => {
-  reload();
-});
-
 const currentProject: ComputedRef<ProjectModel | undefined> = computed(() =>
   projects.value.find((project) => project.name === currentProjectName.value),
 );
 
+onMounted(() => {
+  reload();
+});
+
+watch(currentProjectName, () => {
+  if (!!currentProjectName.value && !!currentUsername.value)
+    onProjectChange(currentUsername.value, currentProjectName.value);
+});
+
 async function reload() {
   await loadUsers();
   await loadProjectsByCurrentUser();
+}
+
+function onProjectChange(username: string, projectname: string) {
+  vscode.postMessage({
+    type: 'save-backup-project',
+    username,
+    projectname,
+    project: JSON.stringify(currentProject.value),
+  });
 }
 
 async function loadUsers() {

@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { API } from './api';
 import os from 'os';
 import fs from 'fs';
+import { downloadFile, saveAndBackupProject } from './util';
+import { ProjectModel } from '../../shared/models/projectModel';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
     private static instance: SidebarProvider | null = null;
@@ -200,38 +202,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     });
                     break;
                 case 'open-file':
-                    let username: string = data.username;
-                    let projectname: string = data.projectname;
-
-                    let getFileData: any = await API.getFile(data.filepath);
-
-                    let fileDir: string =
-                        os.tmpdir() +
-                        '/vscode_wombat_ext/' +
-                        username +
-                        '/' +
-                        projectname;
-
-                    if (!fs.existsSync(fileDir)) {
-                        fs.mkdirSync(fileDir, { recursive: true });
-                    }
-
-                    let codeFilePath: string = fileDir + '/' + getFileData.name;
-
-                    let configData: any = {
-                        filepathOnWombat: getFileData.path,
-                        username,
-                        projectname,
-                    };
-
-                    let configFilepath: string =
-                        fileDir + '/' + getFileData.name + '.json';
-
-                    let decodedFileContent: string = atob(getFileData.content);
-                    fs.writeFileSync(codeFilePath, decodedFileContent);
-                    fs.writeFileSync(
-                        configFilepath,
-                        JSON.stringify(configData)
+                    const codeFilePath = await downloadFile(
+                        data.username,
+                        data.projectname,
+                        data.filepath
                     );
 
                     await vscode.window.showTextDocument(
@@ -303,6 +277,21 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             }
                         });
                     break;
+                case 'save-backup-project':
+                    const path: string =
+                        os.tmpdir() +
+                        '/vscode_wombat_ext/' +
+                        data.username +
+                        '/' +
+                        data.projectname;
+                    const project = JSON.parse(data.project) as ProjectModel;
+
+                    saveAndBackupProject(
+                        data.username,
+                        data.projectname,
+                        path,
+                        project
+                    );
             }
         });
     }
