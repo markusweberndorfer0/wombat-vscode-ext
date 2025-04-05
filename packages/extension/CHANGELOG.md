@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2]
+
+- When changing projects files will be re-downloaded and existing ones will be backed up, in order to avoid overriding newer changes on the wombat
+
 ## [0.1.1]
 
 - If changes were made, the code will automatically be compiled before running
