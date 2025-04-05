@@ -187,7 +187,6 @@ function openFile(path: string) {
     filepath: path,
     username: currentUsername.value,
     projectname: currentProject.value?.name,
-    project: JSON.stringify(currentProject.value),
   });
 }
 
