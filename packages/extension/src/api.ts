@@ -139,9 +139,7 @@ export class API {
      * @returns the file data
      */
     public static async getFile(filepath: string) {
-        console.log('http://192.168.125.1:8888/api/fs' + filepath);
         let apiUrl: string = 'http://192.168.125.1:8888/api/fs' + filepath;
-        console.log(apiUrl);
         let apiResult: any = await axios.get(apiUrl);
         if (apiResult.status === 200) {
             return apiResult.data;
