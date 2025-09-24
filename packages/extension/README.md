@@ -22,7 +22,3 @@
 
 - No code completion
 - No recognition of the official `kipr/wombat.h` library
-
-## Release Notes
-
-[CHANGELOG.md](./CHANGELOG.md)
