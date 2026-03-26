@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { API } from './api';
 import os from 'os';
-import fs from 'fs';
 import { downloadFile, saveAndBackupProject } from './util';
 import { ProjectModel } from '../../shared/models/projectModel';
 
@@ -9,6 +8,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     private static instance: SidebarProvider | null = null;
     private _sidebar?: vscode.WebviewView;
     private readonly _extensionUri: vscode.Uri;
+    private wombatAddress = '192.168.125.1:8888';
 
     private constructor(context: vscode.ExtensionContext) {
         this._extensionUri = context.extensionUri;
@@ -292,6 +292,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         path,
                         project
                     );
+                    break;
+                case 'get-wombat-address':
+                    this._sidebar!.webview.postMessage({
+                        command: 'wombat-address',
+                        data: this.wombatAddress,
+                    });
+                    break;
             }
         });
     }
@@ -359,5 +366,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         }
 
         this._sidebar?.webview.postMessage({ command: 'refresh' });
+    }
+
+    public updateAddress(address: string): void {
+        this.wombatAddress = address;
+        this._sidebar?.webview.postMessage({
+            command: 'wombat-address',
+            data: address,
+        });
     }
 }

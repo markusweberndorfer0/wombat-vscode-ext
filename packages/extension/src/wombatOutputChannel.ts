@@ -4,11 +4,11 @@ export class WombatOutputChannel {
     private static wombatOutput = vscode.window.createOutputChannel('Wombat');
 
     public static show() {
-        this.wombatOutput.show();
+        WombatOutputChannel.wombatOutput.show();
     }
 
     public static clear() {
-        this.wombatOutput.clear();
+        WombatOutputChannel.wombatOutput.clear();
     }
 
     /**
@@ -16,7 +16,7 @@ export class WombatOutputChannel {
      * @param str
      */
     public static print(str: string) {
-        this.wombatOutput.append(str);
+        WombatOutputChannel.wombatOutput.append(str);
     }
 
     /**
@@ -24,7 +24,6 @@ export class WombatOutputChannel {
      * @param str
      */
     public static println(str: string) {
-        this.wombatOutput.append(str);
-        this.wombatOutput.append('\n');
+        WombatOutputChannel.wombatOutput.append(str + "\n");
     }
 }

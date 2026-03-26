@@ -2,9 +2,11 @@ import io from 'socket.io-client';
 import * as vscode from 'vscode';
 import { WombatOutputChannel } from './wombatOutputChannel';
 import { SidebarProvider } from './sidebarProvider';
+import { API } from './api';
 
 export class WebSocket {
     private sidebar;
+    private socket?: SocketIOClient.Socket = undefined;
 
     constructor(context: vscode.ExtensionContext) {
         this.sidebar = SidebarProvider.getInstance(context);
@@ -14,7 +16,11 @@ export class WebSocket {
      * Generates an output channel and puts the run output into it
      */
     public async listenOnTerminalOutput() {
-        const socket = io('ws://192.168.125.1:8888/runner', {
+        if (this.socket !== undefined && this.socket.connected) {
+            this.socket.close();
+        }
+
+        this.socket = io(`ws://${API.address}/runner`, {
             reconnection: true,
             reconnectionAttempts: Infinity,
             reconnectionDelay: 500,
@@ -23,15 +29,15 @@ export class WebSocket {
             autoConnect: true,
         } as SocketIOClient.ConnectOpts);
 
-        socket.on('stdout', (line: string) => {
+        this.socket.on('stdout', (line: string) => {
             WombatOutputChannel.print(line);
         });
 
-        socket.on('disconnect', () => {
+        this.socket.on('disconnect', () => {
             vscode.window.showErrorMessage('Disconnected from Wombat');
         });
 
-        socket.on('connect', () => {
+        this.socket.on('connect', () => {
             vscode.window.showInformationMessage('Connected to Wombat');
             this.sidebar.refresh();
         });
