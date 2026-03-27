@@ -7,15 +7,22 @@ import { API } from './api';
 import { WebSocket } from './webSocket';
 import { WombatOutputChannel } from './wombatOutputChannel';
 import { Config } from '../../shared/models/config';
+import { AddressService } from './addressService';
+import { ConnectionService } from './connectionService';
 
-var savedSinceLastCompile = true;
-var currentActionCompleted = true;
+let savedSinceLastCompile = true;
+let currentActionCompleted = true;
+let ws: WebSocket | undefined = undefined;
+let addressService: AddressService | undefined = undefined;
+let connectionService: ConnectionService | undefined = undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
+    const sidebarProvider = SidebarProvider.getInstance(context);
+
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             'wombat-sidebar',
-            SidebarProvider.getInstance(context)
+            sidebarProvider
         )
     );
 
@@ -32,14 +39,38 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'kipr-wombat-vscode-extension.stop',
             stopProject
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.set-wombat-address',
+            setWombatAddress
         )
     );
 
     // Autosave wombat files
-    vscode.workspace.onDidSaveTextDocument(autosaveWombatFile);
+    context.subscriptions.push(
+        vscode.workspace.onDidSaveTextDocument(autosaveWombatFile)
+    );
 
-    const ws = new WebSocket(context);
-    ws.listenOnTerminalOutput();
+    addressService = new AddressService(context);
+    connectionService = new ConnectionService();
+    context.subscriptions.push(addressService, connectionService);
+
+    API.address = addressService.getAddress();
+    sidebarProvider.updateAddress(API.address);
+
+    ws = new WebSocket(context, connectionService);
+    await ws.listenOnTerminalOutput();
+
+    context.subscriptions.push(
+        addressService.onDidChangeAddress((address) => {
+            API.address = address;
+            sidebarProvider.updateAddress(address);
+            ws?.listenOnTerminalOutput();
+        }),
+        connectionService.onDidChangeConnection((connected) => {
+            sidebarProvider.setConnectionStatus(connected);
+        })
+    );
 }
 
 export async function compileProject(e: any) {
@@ -125,6 +156,23 @@ export async function stopProject() {
             `There was an error stopping the project -> ${e}`
         );
         WombatOutputChannel.show();
+    }
+}
+
+export async function setWombatAddress() {
+    const result = await vscode.window.showInputBox({
+        title: 'Enter Wombat Address',
+        value: addressService?.getAddress() ?? '192.168.125.1:8888',
+    } as vscode.InputBoxOptions);
+
+    if (!result) {
+        return;
+    }
+
+    try {
+        await addressService?.setAddress(result);
+    } catch (e) {
+        vscode.window.showErrorMessage(`${e}`);
     }
 }
 

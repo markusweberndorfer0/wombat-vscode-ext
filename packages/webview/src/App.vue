@@ -1,16 +1,28 @@
 <template>
-  <div class="flex flex-row justify-between items-center my-1">
+  <div class="mb-2 flex justify-between">
+    <div>
+      <div class="text-sm uppercase font-bold">Wombat-IP</div>
+      <div class="text-sm uppercase font-bold">State</div>
+    </div>
+    <div>
+      <div>{{ ipAddress }}</div>
+      <div :class="{ 'text-red-500': !wombatConnected, 'text-green-500': wombatConnected }">{{
+        wombatConnected ? "Connected" : "Not connected" }}</div>
+    </div>
+  </div>
+
+  <hr />
+
+  <div class="flex flex-row justify-between items-center my-1 mt-2">
     <span class="text-sm uppercase font-bold">Users</span>
     <i class="codicon codicon-refresh cursor-pointer" @click="reload()"></i>
   </div>
 
   <div class="flex flex-row justify-around items-center">
-    <select
-      class="text-[13px] w-full bg-[var(--vscode-button-secondaryBackground)] text-[var(--vscode-foreground)]"
-      v-model="currentUsername"
-      @change="loadProjectsByCurrentUser()"
-    >
-      <option v-for="(username, index) in Object.keys(users)" :key="index" :value="username">
+    <select class="text-[13px] w-full bg-[var(--vscode-button-secondaryBackground)] text-[var(--vscode-foreground)]"
+      v-model="currentUsername" @change="loadProjectsByCurrentUser()">
+      <option class="bg-[var(--vscode-dropdown-background)]" v-for="(username, index) in Object.keys(users)"
+        :key="index" :value="username">
         {{ username }}
       </option>
     </select>
@@ -21,11 +33,10 @@
   <div class="mt-3 mb-1 text-sm uppercase font-bold">Projects</div>
 
   <div class="flex flex-row justify-around items-center">
-    <select
-      class="text-[13px] w-full bg-[var(--vscode-button-secondaryBackground)] text-[var(--vscode-foreground)]"
-      v-model="currentProjectName"
-    >
-      <option v-for="(project, index) in projects" :key="index" :value="project.name">
+    <select class="text-[13px] w-full bg-[var(--vscode-button-secondaryBackground)] text-[var(--vscode-foreground)]"
+      v-model="currentProjectName">
+      <option class="bg-[var(--vscode-dropdown-background)]" v-for="(project, index) in projects" :key="index"
+        :value="project.name">
         {{ project.name }} ({{ project.parameters.language }})
       </option>
     </select>
@@ -43,16 +54,11 @@
       </div>
     </div>
     <div id="include-project-files">
-      <div
-        v-for="includeFile in currentProject?.include_files"
-        class="py-0.5 text-sm ml-2.5 flex flex-row items-center justify-between"
-      >
+      <div v-for="includeFile in currentProject?.include_files"
+        class="py-0.5 text-sm ml-2.5 flex flex-row items-center justify-between" :key="includeFile.name">
         <div class="cursor-pointer" @click="openFile(includeFile.path)">{{ includeFile.name }}</div>
-        <i
-          v-if="currentProject !== undefined"
-          class="codicon codicon-trash cursor-pointer"
-          @click="deleteFile(includeFile.name, currentProject?.links.include_directory.href)"
-        ></i>
+        <i v-if="currentProject !== undefined" class="codicon codicon-trash cursor-pointer"
+          @click="deleteFile(includeFile.name, currentProject?.links.include_directory.href)"></i>
       </div>
     </div>
   </template>
@@ -64,20 +70,15 @@
     </div>
   </div>
   <div>
-    <div
-      v-for="sourceFile in currentProject?.source_files"
-      class="py-0.5 text-sm ml-2.5 flex flex-row items-center justify-between"
-    >
+    <div v-for="sourceFile in currentProject?.source_files" :key="sourceFile.name"
+      class="py-0.5 text-sm ml-2.5 flex flex-row items-center justify-between">
       <div class="cursor-pointer" @click="openFile(sourceFile.path)">{{ sourceFile.name }}</div>
-      <i
-        v-if="
-          currentProject !== undefined &&
-          currentProject?.source_files.length > 1 &&
-          !new RegExp(/^main.*$/).test(sourceFile.name)
-        "
-        class="codicon codicon-trash cursor-pointer"
-        @click="deleteFile(sourceFile.name, currentProject.links.src_directory.href)"
-      ></i>
+      <i v-if="
+        currentProject !== undefined &&
+        currentProject?.source_files.length > 1 &&
+        !new RegExp(/^main.*$/).test(sourceFile.name)
+      " class="codicon codicon-trash cursor-pointer"
+        @click="deleteFile(sourceFile.name, currentProject.links.src_directory.href)"></i>
     </div>
   </div>
 </template>
@@ -89,24 +90,42 @@ import { type ProjectModel } from '../../shared/models/projectModel';
 const vscode = acquireVsCodeApi();
 
 window.addEventListener('message', (event) => {
-  if (event.data.command === 'refresh') {
-    reload();
+  switch (event.data.command) {
+    case 'refresh':
+      reload();
+      break;
+    case 'wombat-address':
+      ipAddress.value = event.data.data;
+      break;
+    case 'connection-status':
+      wombatConnected.value = event.data.data;
+      break;
   }
 });
 
 const currentUsername: Ref<string | undefined> = ref(undefined);
 const currentProjectName: Ref<string | undefined> = ref(undefined);
 
-const users = ref([] as any[]);
+const users = ref([]);
 const usernames = ref([] as string[]);
-const projectLinks = ref([] as any[]);
+const projectLinks = ref([]);
 const projects = ref([] as ProjectModel[]);
+
+const ipAddress = ref("192.168.125.1:8888");
+const wombatConnected = ref(false);
 
 const currentProject: ComputedRef<ProjectModel | undefined> = computed(() =>
   projects.value.find((project) => project.name === currentProjectName.value),
 );
 
 onMounted(() => {
+  vscode.postMessage({
+    type: 'get-wombat-address',
+  });
+  vscode.postMessage({
+    type: 'get-connection-status',
+  });
+
   reload();
 });
 

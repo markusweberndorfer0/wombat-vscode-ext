@@ -2,11 +2,14 @@ import io from 'socket.io-client';
 import * as vscode from 'vscode';
 import { WombatOutputChannel } from './wombatOutputChannel';
 import { SidebarProvider } from './sidebarProvider';
+import { API } from './api';
+import { ConnectionService } from './connectionService';
 
 export class WebSocket {
     private sidebar;
+    private socket?: SocketIOClient.Socket = undefined;
 
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext, private connectionService: ConnectionService) {
         this.sidebar = SidebarProvider.getInstance(context);
     }
 
@@ -14,25 +17,33 @@ export class WebSocket {
      * Generates an output channel and puts the run output into it
      */
     public async listenOnTerminalOutput() {
-        const socket = io('ws://192.168.125.1:8888/runner', {
+        if (this.socket) {
+            this.socket.removeAllListeners();
+            this.socket.close();
+            this.socket = undefined;
+        }
+
+        this.socket = io(`ws://${API.address}/runner`, {
             reconnection: true,
             reconnectionAttempts: Infinity,
-            reconnectionDelay: 500,
-            reconnectionDelayMax: 1000,
-            timeout: 1000,
+            reconnectionDelay: 50,
+            reconnectionDelayMax: 100,
+            timeout: 200,
             autoConnect: true,
         } as SocketIOClient.ConnectOpts);
 
-        socket.on('stdout', (line: string) => {
+        this.socket.on('stdout', (line: string) => {
             WombatOutputChannel.print(line);
         });
 
-        socket.on('disconnect', () => {
+        this.socket.on('disconnect', () => {
             vscode.window.showErrorMessage('Disconnected from Wombat');
+            this.connectionService.setConnectionStatus(false);
         });
 
-        socket.on('connect', () => {
+        this.socket.on('connect', () => {
             vscode.window.showInformationMessage('Connected to Wombat');
+            this.connectionService.setConnectionStatus(true);
             this.sidebar.refresh();
         });
     }
