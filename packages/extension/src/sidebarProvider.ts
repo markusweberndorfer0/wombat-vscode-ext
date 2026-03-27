@@ -384,7 +384,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
 
     public setConnectionStatus(connected: boolean): void {
-        console.log(`Connection status changed: ${connected}`, 'sidebarProvider.ts');
         this.wombatConnected = connected;
         this._sidebar?.webview.postMessage({
             command: 'connection-status',

@@ -17,8 +17,6 @@ let addressService: AddressService | undefined = undefined;
 let connectionService: ConnectionService | undefined = undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
-    console.log("init")
-
     const sidebarProvider = SidebarProvider.getInstance(context);
 
     context.subscriptions.push(
@@ -70,7 +68,6 @@ export async function activate(context: vscode.ExtensionContext) {
             ws?.listenOnTerminalOutput();
         }),
         connectionService.onDidChangeConnection((connected) => {
-            console.log(`Connection status changed: ${connected}`, 'extension.ts');
             sidebarProvider.setConnectionStatus(connected);
         })
     );

@@ -40,7 +40,6 @@ export class WebSocket {
         });
 
         this.socket.on('connect', () => {
-            console.log(`Connection status changed: ${true}`, 'webSocket.ts');
             vscode.window.showInformationMessage('Connected to Wombat');
             this.connectionService.setConnectionStatus(true);
             this.sidebar.refresh();
