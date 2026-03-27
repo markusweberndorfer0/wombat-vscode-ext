@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.0]
+
+- Added option to enter wombat address
+
 ## [0.1.2]
 
 - When changing projects files will be re-downloaded and existing ones will be backed up, in order to avoid overriding newer changes on the wombat
