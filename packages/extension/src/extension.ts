@@ -8,13 +8,17 @@ import { WebSocket } from './webSocket';
 import { WombatOutputChannel } from './wombatOutputChannel';
 import { Config } from '../../shared/models/config';
 import { AddressService } from './addressService';
+import { ConnectionService } from './connectionService';
 
 let savedSinceLastCompile = true;
 let currentActionCompleted = true;
 let ws: WebSocket | undefined = undefined;
 let addressService: AddressService | undefined = undefined;
+let connectionService: ConnectionService | undefined = undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
+    console.log("init")
+
     const sidebarProvider = SidebarProvider.getInstance(context);
 
     context.subscriptions.push(
@@ -50,12 +54,13 @@ export async function activate(context: vscode.ExtensionContext) {
     );
 
     addressService = new AddressService(context);
-    context.subscriptions.push(addressService);
+    connectionService = new ConnectionService();
+    context.subscriptions.push(addressService, connectionService);
 
     API.address = addressService.getAddress();
     sidebarProvider.updateAddress(API.address);
 
-    ws = new WebSocket(context);
+    ws = new WebSocket(context, connectionService);
     await ws.listenOnTerminalOutput();
 
     context.subscriptions.push(
@@ -63,6 +68,10 @@ export async function activate(context: vscode.ExtensionContext) {
             API.address = address;
             sidebarProvider.updateAddress(address);
             ws?.listenOnTerminalOutput();
+        }),
+        connectionService.onDidChangeConnection((connected) => {
+            console.log(`Connection status changed: ${connected}`, 'extension.ts');
+            sidebarProvider.setConnectionStatus(connected);
         })
     );
 }
@@ -156,7 +165,7 @@ export async function stopProject() {
 export async function setWombatAddress() {
     const result = await vscode.window.showInputBox({
         title: 'Enter Wombat Address',
-        value: addressService?.getAddress() ?? API.address,
+        value: addressService?.getAddress() ?? '192.168.125.1:8888',
     } as vscode.InputBoxOptions);
 
     if (!result) {

@@ -21,7 +21,8 @@
   <div class="flex flex-row justify-around items-center">
     <select class="text-[13px] w-full bg-[var(--vscode-button-secondaryBackground)] text-[var(--vscode-foreground)]"
       v-model="currentUsername" @change="loadProjectsByCurrentUser()">
-      <option v-for="(username, index) in Object.keys(users)" :key="index" :value="username">
+      <option class="bg-[var(--vscode-dropdown-background)]" v-for="(username, index) in Object.keys(users)"
+        :key="index" :value="username">
         {{ username }}
       </option>
     </select>
@@ -34,7 +35,8 @@
   <div class="flex flex-row justify-around items-center">
     <select class="text-[13px] w-full bg-[var(--vscode-button-secondaryBackground)] text-[var(--vscode-foreground)]"
       v-model="currentProjectName">
-      <option v-for="(project, index) in projects" :key="index" :value="project.name">
+      <option class="bg-[var(--vscode-dropdown-background)]" v-for="(project, index) in projects" :key="index"
+        :value="project.name">
         {{ project.name }} ({{ project.parameters.language }})
       </option>
     </select>
@@ -88,13 +90,16 @@ import { type ProjectModel } from '../../shared/models/projectModel';
 const vscode = acquireVsCodeApi();
 
 window.addEventListener('message', (event) => {
-  if (event.data.command === 'refresh') {
-    reload();
-    return;
-  }
-
-  if (event.data.command === 'wombat-address') {
-    ipAddress.value = event.data.data;
+  switch (event.data.command) {
+    case 'refresh':
+      reload();
+      break;
+    case 'wombat-address':
+      ipAddress.value = event.data.data;
+      break;
+    case 'connection-status':
+      wombatConnected.value = event.data.data;
+      break;
   }
 });
 
@@ -107,7 +112,7 @@ const projectLinks = ref([]);
 const projects = ref([] as ProjectModel[]);
 
 const ipAddress = ref("192.168.125.1:8888");
-const wombatConnected = ref(true);
+const wombatConnected = ref(false);
 
 const currentProject: ComputedRef<ProjectModel | undefined> = computed(() =>
   projects.value.find((project) => project.name === currentProjectName.value),
@@ -116,6 +121,9 @@ const currentProject: ComputedRef<ProjectModel | undefined> = computed(() =>
 onMounted(() => {
   vscode.postMessage({
     type: 'get-wombat-address',
+  });
+  vscode.postMessage({
+    type: 'get-connection-status',
   });
 
   reload();

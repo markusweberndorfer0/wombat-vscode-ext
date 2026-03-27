@@ -3,12 +3,13 @@ import * as vscode from 'vscode';
 import { WombatOutputChannel } from './wombatOutputChannel';
 import { SidebarProvider } from './sidebarProvider';
 import { API } from './api';
+import { ConnectionService } from './connectionService';
 
 export class WebSocket {
     private sidebar;
     private socket?: SocketIOClient.Socket = undefined;
 
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext, private connectionService: ConnectionService) {
         this.sidebar = SidebarProvider.getInstance(context);
     }
 
@@ -23,9 +24,9 @@ export class WebSocket {
         this.socket = io(`ws://${API.address}/runner`, {
             reconnection: true,
             reconnectionAttempts: Infinity,
-            reconnectionDelay: 500,
-            reconnectionDelayMax: 1000,
-            timeout: 1000,
+            reconnectionDelay: 50,
+            reconnectionDelayMax: 100,
+            timeout: 200,
             autoConnect: true,
         } as SocketIOClient.ConnectOpts);
 
@@ -35,10 +36,13 @@ export class WebSocket {
 
         this.socket.on('disconnect', () => {
             vscode.window.showErrorMessage('Disconnected from Wombat');
+            this.connectionService.setConnectionStatus(false);
         });
 
         this.socket.on('connect', () => {
+            console.log(`Connection status changed: ${true}`, 'webSocket.ts');
             vscode.window.showInformationMessage('Connected to Wombat');
+            this.connectionService.setConnectionStatus(true);
             this.sidebar.refresh();
         });
     }

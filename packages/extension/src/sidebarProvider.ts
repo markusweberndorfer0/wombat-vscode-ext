@@ -9,6 +9,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     private _sidebar?: vscode.WebviewView;
     private readonly _extensionUri: vscode.Uri;
     private wombatAddress = '192.168.125.1:8888';
+    private wombatConnected = false;
 
     private constructor(context: vscode.ExtensionContext) {
         this._extensionUri = context.extensionUri;
@@ -299,6 +300,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         data: this.wombatAddress,
                     });
                     break;
+                case 'get-connection-status':
+                    this._sidebar!.webview.postMessage({
+                        command: 'connection-status',
+                        data: this.wombatConnected,
+                    });
+                    break;
             }
         });
     }
@@ -373,6 +380,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         this._sidebar?.webview.postMessage({
             command: 'wombat-address',
             data: address,
+        });
+    }
+
+    public setConnectionStatus(connected: boolean): void {
+        console.log(`Connection status changed: ${connected}`, 'sidebarProvider.ts');
+        this.wombatConnected = connected;
+        this._sidebar?.webview.postMessage({
+            command: 'connection-status',
+            data: connected,
         });
     }
 }
