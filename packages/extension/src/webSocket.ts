@@ -17,8 +17,10 @@ export class WebSocket {
      * Generates an output channel and puts the run output into it
      */
     public async listenOnTerminalOutput() {
-        if (this.socket !== undefined && this.socket.connected) {
+        if (this.socket) {
+            this.socket.removeAllListeners();
             this.socket.close();
+            this.socket = undefined;
         }
 
         this.socket = io(`ws://${API.address}/runner`, {
