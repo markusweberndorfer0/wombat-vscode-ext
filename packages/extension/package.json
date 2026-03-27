@@ -115,7 +115,6 @@
     "dependencies": {
         "@vscode/codicons": "^0.0.36",
         "axios": "^1.7.9",
-        "lerna": "9.0.7",
         "socket.io-client": "^4.8.3"
     }
 }
