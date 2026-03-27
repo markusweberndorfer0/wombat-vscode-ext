@@ -169,14 +169,8 @@ export async function setWombatAddress() {
         return;
     }
 
-    if (addressService === undefined) {
-        API.address = result;
-        void ws?.listenOnTerminalOutput();
-        return;
-    }
-
     try {
-        await addressService.setAddress(result);
+        await addressService?.setAddress(result);
     } catch (e) {
         vscode.window.showErrorMessage(`${e}`);
     }
