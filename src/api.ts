@@ -1,15 +1,14 @@
 import axios from 'axios';
 import { WombatOutputChannel } from './wombatOutputChannel';
 import { CompileResponse } from './models/compileResponse';
+import { AddressService } from './addressService';
 
 export class API {
-    public static address = '192.168.125.1:8888';
-
     /**
      * Gets all users of the wombat
      */
     public static async getUsers() {
-        let apiUri: string = `http://${API.address}/api/projects/users`;
+        let apiUri: string = `http://${AddressService.address}/api/projects/users`;
 
         let apiResult = await axios.get(apiUri);
         if (apiResult.status === 200) {
@@ -24,7 +23,7 @@ export class API {
      */
     public static async deleteUser(username: string) {
         let apiUrl: string =
-            `http://${API.address}/api/projects/users/${username}`;
+            `http://${AddressService.address}/api/projects/users/${username}`;
 
         let apiResult = await axios.delete(apiUrl);
         if (apiResult.status !== 204) {
@@ -38,7 +37,7 @@ export class API {
      */
     public static async createUser(username: string) {
         let apiUrl: string =
-            `http://${API.address}/api/projects/users/${username}`;
+            `http://${AddressService.address}/api/projects/users/${username}`;
 
         let apiResult = await axios.put(apiUrl);
         if (apiResult.status !== 204) {
@@ -57,7 +56,7 @@ export class API {
         username: string,
         projectname: string
     ) {
-        let apiUrl: string = `http://${API.address}/api/projects`;
+        let apiUrl: string = `http://${AddressService.address}/api/projects`;
         let srcFileName: string = '';
 
         if (language === 'C') {
@@ -88,7 +87,7 @@ export class API {
      */
     public static async deleteProject(username: string, projectname: string) {
         let apiUrl: string =
-            `http://${API.address}/api/projects/${username}/${projectname}`;
+            `http://${AddressService.address}/api/projects/${username}/${projectname}`;
 
         let apiResult = await axios.delete(apiUrl);
         if (apiResult.status !== 204) {
@@ -103,7 +102,7 @@ export class API {
      */
     public static async getProjects(username: string) {
         let apiUrl: string =
-            `http://${API.address}/api/projects/${username}`;
+            `http://${AddressService.address}/api/projects/${username}`;
 
         let apiResult = await axios.get(apiUrl);
         if (apiResult.status === 200) {
@@ -120,7 +119,7 @@ export class API {
      */
     public static async getProject(username: string, projectname: string) {
         let apiUrl: string =
-            `http://${API.address}/api/projects/${username}/${projectname}`;
+            `http://${AddressService.address}/api/projects/${username}/${projectname}`;
 
         let apiResult = await axios.get(apiUrl);
         if (apiResult.status === 200) {
@@ -135,7 +134,7 @@ export class API {
      * @returns the file data
      */
     public static async getFile(filepath: string) {
-        let apiUrl: string = `http://${API.address}/api/fs/${API.removeLeadingSlash(filepath)}`;
+        let apiUrl: string = `http://${AddressService.address}/api/fs/${API.removeLeadingSlash(filepath)}`;
         let apiResult = await axios.get(apiUrl);
         if (apiResult.status === 200) {
             return apiResult.data;
@@ -149,7 +148,7 @@ export class API {
      * @param encodedContent The encoded content
      */
     public static async putFile(filepath: string, encodedContent: string) {
-        let apiUrl: string = `http://${API.address}/api/fs/${API.removeLeadingSlash(filepath)}`;
+        let apiUrl: string = `http://${AddressService.address}/api/fs/${API.removeLeadingSlash(filepath)}`;
         let apiData = {
             content: encodedContent,
             encoding: 'ascii',
@@ -170,7 +169,7 @@ export class API {
         path: string,
         filename: string
     ): Promise<void> {
-        const apiUrl = `http://${API.address}/${API.removeLeadingSlash(path)}`;
+        const apiUrl = `http://${AddressService.address}/${API.removeLeadingSlash(path)}`;
         const apiData = { name: filename, type: 'file', content: '' };
 
         try {
@@ -185,7 +184,7 @@ export class API {
      * @param path api file path
      */
     public static async deleteFile(path: string) {
-        const apiUrl = `http://${API.address}/api/fs/${API.removeLeadingSlash(path)}`;
+        const apiUrl = `http://${AddressService.address}/api/fs/${API.removeLeadingSlash(path)}`;
 
         try {
             await axios.delete(apiUrl);
@@ -200,7 +199,7 @@ export class API {
      * @param projectname
      */
     public static async compileProject(username: string, projectname: string) {
-        let apiUrl: string = `http://${API.address}/api/compile`;
+        let apiUrl: string = `http://${AddressService.address}/api/compile`;
         let apiData = {
             name: projectname,
             user: username,
@@ -237,7 +236,7 @@ export class API {
      * @param projectname
      */
     public static async runProject(username: string, projectname: string) {
-        let apiUrl: string = `http://${API.address}/api/run`;
+        let apiUrl: string = `http://${AddressService.address}/api/run`;
         let apiData = {
             name: projectname,
             user: username,
@@ -261,7 +260,7 @@ export class API {
      * Stop a wombat project
      */
     public static async stopProject() {
-        let apiUrl: string = `http://${API.address}/api/run/current`;
+        let apiUrl: string = `http://${AddressService.address}/api/run/current`;
 
         let apiResult = await axios.delete(apiUrl);
 

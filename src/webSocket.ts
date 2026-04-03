@@ -4,6 +4,7 @@ import { TreeViewProvider } from './treeViewProvider';
 import { API } from './api';
 import { ConnectionService } from './connectionService';
 import io from 'socket.io-client';
+import { AddressService } from './addressService';
 
 export class WebSocket {
     private readonly treeView: TreeViewProvider;
@@ -23,7 +24,7 @@ export class WebSocket {
             this.socket = undefined;
         }
 
-        this.socket = io(`ws://${API.address}/runner`, {
+        this.socket = io(`ws://${AddressService.address}/runner`, {
             reconnection: true,
             reconnectionAttempts: Infinity,
             reconnectionDelay: 50,

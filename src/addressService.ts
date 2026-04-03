@@ -8,7 +8,11 @@ export class AddressService implements vscode.Disposable {
         new vscode.EventEmitter<string>();
     public readonly onDidChangeAddress = this.onDidChangeAddressEmitter.event;
 
-    constructor(private readonly context: vscode.ExtensionContext) {}
+    public static address = DEFAULT_ADDRESS;
+
+    constructor(private readonly context: vscode.ExtensionContext) {
+        AddressService.address = this.context.globalState.get(ADDRESS_KEY, DEFAULT_ADDRESS);
+    }
 
     getAddress(): string {
         const address = this.context.globalState.get<string>(
@@ -26,6 +30,7 @@ export class AddressService implements vscode.Disposable {
             );
         }
 
+        AddressService.address = address;
         await this.context.globalState.update(ADDRESS_KEY, address);
         this.onDidChangeAddressEmitter.fire(address);
     }
