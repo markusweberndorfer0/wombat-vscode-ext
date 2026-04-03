@@ -1,23 +1,260 @@
 {
-  "main": "index.js",
-  "directories": {
-    "doc": "doc"
-  },
-  "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "watch": "nodemon pipeline.js"
-  },
-  "private": true,
-  "devDependencies": {
-    "@types/fs-extra": "^11.0.4",
-    "lerna": "^9.0.7",
-    "nodemon": "^3.1.9",
-    "typescript": "^5.7.3"
-  },
-  "type": "module",
-  "dependencies": {
-    "fs-extra": "^11.3.0"
-  }
+    "name": "kipr-wombat-vscode-extension",
+    "displayName": "KIPR Wombat",
+    "description": "A extension which allows you to program the KIPR Wombat via Visual Studio Code",
+    "publisher": "markusweberndorfer0",
+    "icon": "media/logo.png",
+    "version": "0.2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/markusplayzz/wombat-vscode-ext.git"
+    },
+    "engines": {
+        "vscode": "^1.88.0",
+        "npm": ">=10.9.2 <12.0.0",
+        "node": ">=22.13.1 <23.0.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [],
+    "main": "./out/extension.js",
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "wombat-sidebar-view",
+                    "title": "KIPR Wombat",
+                    "icon": "media/logo.png"
+                }
+            ]
+        },
+        "views": {
+            "wombat-sidebar-view": [
+                {
+                    "type": "tree",
+                    "id": "wombat-sidebar",
+                    "name": "KIPR Wombat",
+                    "icon": "./media/logo.png"
+                }
+            ]
+        },
+        "menus": {
+            "view/title": [
+                {
+                    "command": "kipr-wombat-vscode-extension.refresh-tree",
+                    "when": "view == wombat-sidebar",
+                    "group": "navigation"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.create-user",
+                    "when": "view == wombat-sidebar",
+                    "group": "navigation"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.set-wombat-address",
+                    "when": "view == wombat-sidebar",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "kipr-wombat-vscode-extension.create-project",
+                    "when": "view == wombat-sidebar && viewItem == wombat-user",
+                    "group": "inline"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.delete-user",
+                    "when": "view == wombat-sidebar && viewItem == wombat-user",
+                    "group": "inline"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.delete-project",
+                    "when": "view == wombat-sidebar && viewItem == wombat-project",
+                    "group": "inline"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.create-file",
+                    "when": "view == wombat-sidebar && viewItem == wombat-section",
+                    "group": "inline"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.delete-file",
+                    "when": "view == wombat-sidebar && viewItem == wombat-file",
+                    "group": "inline"
+                }
+            ],
+            "editor/title": [
+                {
+                    "command": "kipr-wombat-vscode-extension.run",
+                    "when": "resourceScheme == file && resourcePath =~ /vscode[-_]wombat[-_]ext/ && resourceExtname != .json",
+                    "group": "navigation"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.compile",
+                    "when": "resourceScheme == file && resourcePath =~ /vscode[-_]wombat[-_]ext/ && resourceExtname != .json",
+                    "group": "navigation"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.stop",
+                    "when": "resourceScheme == file && resourcePath =~ /vscode[-_]wombat[-_]ext/ && resourceExtname != .json",
+                    "group": "navigation"
+                }
+            ], 
+            "commandPalette": [
+                {
+                    "command": "kipr-wombat-vscode-extension.create-user",
+                    "when": "false"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.delete-user",
+                    "when": "false"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.create-project",
+                    "when": "false"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.delete-project",
+                    "when": "false"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.create-file",
+                    "when": "false"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.delete-file",
+                    "when": "false"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.open-remote-file",
+                    "when": "false"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.refresh-tree",
+                    "when": "false"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.stop"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.run",
+                    "when": "false"
+                },
+                {
+                    "command": "kipr-wombat-vscode-extension.compile",
+                    "when": "false"
+                }, 
+                {
+                    "command": "kipr-wombat-vscode-extension.set-wombat-address"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "kipr-wombat-vscode-extension.compile",
+                "title": "Compile active project",
+                "icon": "$(gear)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.run",
+                "title": "Run active project",
+                "icon": "$(debug-start)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.refresh-tree",
+                "title": "Refresh Wombat tree",
+                "icon": "$(refresh)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.create-user",
+                "title": "Create Wombat user",
+                "icon": "$(account)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.delete-user",
+                "title": "Delete Wombat user",
+                "icon": "$(trash)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.create-project",
+                "title": "Create Wombat project",
+                "icon": "$(new-folder)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.delete-project",
+                "title": "Delete Wombat project",
+                "icon": "$(trash)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.create-file",
+                "title": "Create Wombat file",
+                "icon": "$(new-file)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.delete-file",
+                "title": "Delete Wombat file",
+                "icon": "$(trash)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.open-remote-file",
+                "title": "Open Wombat file",
+                "icon": "$(open-preview)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.stop",
+                "title": "Stop running project",
+                "icon": "$(debug-stop)",
+                "category": "Wombat"
+            },
+            {
+                "command": "kipr-wombat-vscode-extension.set-wombat-address",
+                "title": "Set Wombat Address",
+                "icon": "$(plug)",
+                "category": "Wombat"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "webpack",
+        "watch": "tsc -b --watch ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint",
+        "test": "vscode-test",
+        "dev": "bash -exec 'code --extensionDevelopmentPath=$(pwd)'"
+    },
+    "devDependencies": {
+        "@babel/plugin-transform-object-assign": "^7.25.9",
+        "@babel/preset-env": "^7.26.9",
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^25.5.0",
+        "@types/socket.io-client": "^1.4.36",
+        "@types/vscode": "^1.88.0",
+        "@typescript-eslint/eslint-plugin": "^8.58.0",
+        "@typescript-eslint/parser": "^8.22.0",
+        "@vscode/test-cli": "^0.0.12",
+        "@vscode/test-electron": "^2.4.1",
+        "babel-loader": "^10.0.0",
+        "eslint": "^10.1.0",
+        "ts-loader": "^9.2.5",
+        "typescript": "^5.7.3",
+        "webpack": "^5.52.1",
+        "webpack-cli": "^7.0.2",
+        "webpack-remove-debug": "^0.1.0"
+    },
+    "dependencies": {
+        "axios": "^1.7.9",
+        "socket.io-client": "^1.7.4"
+    }
 }

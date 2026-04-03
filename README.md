@@ -4,16 +4,18 @@
 
 - Markus Weberndorfer
 
-## Setting up symlink support
+## Features
 
-> ONLY required for Windows users
+- Create and delete Wombat users and projects
+- Browse projects in the VS Code tree view
+- Open, save, and auto-upload source files
+- Compile, run, and stop Wombat projects
+- Manage source and include files from the tree
+- Display Wombat project output
 
-Do these things BEFORE cloning the repo:
+## Requirements
 
-1. Activate Developer Mode in Settings
-2. Enable git symlinks: `git config --global core.symlinks true`
-
-If symlinks still don't work with the given settings, see this StackOverflow answer: https://stackoverflow.com/a/59761201
+- Established connection to the Wombat
 
 ## How 2 develop
 
@@ -29,25 +31,21 @@ Start watcher
 npm run watch
 ```
 
-Start developing.
-
 ## How 2 package
 
-Change to webview dir and build
+Compile the extension
 
 ```bash
-cd ./packages/webview && npm run build
+npm run compile
 ```
 
-Change to extension and package
+Package the extension
 
 ```bash
 npm install -g @vscode/vsce # if vsce not installed
-cd ../extension && vsce package --out ../../
+vsce package --out ./extension.vsix
 ```
-
-Now the package is located in the root directory
 
 ## Release Notes
 
-[CHANGELOG.md](./packages/extension/CHANGELOG.md)
+[CHANGELOG.md](./CHANGELOG.md)

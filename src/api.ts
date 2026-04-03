@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { WombatOutputChannel } from './wombatOutputChannel';
-import { CompileResponse } from '../../shared/models/compileResponse';
+import { CompileResponse } from './models/compileResponse';
 
 export class API {
     public static address = '192.168.125.1:8888';
@@ -135,7 +135,7 @@ export class API {
      * @returns the file data
      */
     public static async getFile(filepath: string) {
-        let apiUrl: string = `http://${API.address}/api/fs/${filepath}`;
+        let apiUrl: string = `http://${API.address}/api/fs/${API.removeLeadingSlash(filepath)}`;
         let apiResult = await axios.get(apiUrl);
         if (apiResult.status === 200) {
             return apiResult.data;
@@ -149,7 +149,7 @@ export class API {
      * @param encodedContent The encoded content
      */
     public static async putFile(filepath: string, encodedContent: string) {
-        let apiUrl: string = `http://${API.address}/api/fs/${filepath}`;
+        let apiUrl: string = `http://${API.address}/api/fs/${API.removeLeadingSlash(filepath)}`;
         let apiData = {
             content: encodedContent,
             encoding: 'ascii',
@@ -170,12 +170,13 @@ export class API {
         path: string,
         filename: string
     ): Promise<void> {
-        const apiUrl = `http://${API.address}/${path}`;
+        const apiUrl = `http://${API.address}/${API.removeLeadingSlash(path)}`;
         const apiData = { name: filename, type: 'file', content: '' };
 
-        const apiResult = await axios.post(apiUrl, apiData);
-        if (apiResult.status !== 201) {
-            throw new Error('Error while trying to create file');
+        try {
+            await axios.post(apiUrl, apiData);
+        } catch (e) {
+            throw new Error("Error while trying to create file");
         }
     }
 
@@ -184,10 +185,11 @@ export class API {
      * @param path api file path
      */
     public static async deleteFile(path: string) {
-        const apiUrl = `http://${API.address}/${path}`;
+        const apiUrl = `http://${API.address}/api/fs/${API.removeLeadingSlash(path)}`;
 
-        const apiResult = await axios.delete(apiUrl);
-        if (apiResult.status !== 204) {
+        try {
+            await axios.delete(apiUrl);
+        } catch (e) {
             throw new Error('Error while trying to delete file');
         }
     }
@@ -266,5 +268,9 @@ export class API {
         if (apiResult.status !== 200) {
             throw new Error('Got response code ' + apiResult.status);
         }
+    }
+
+    private static removeLeadingSlash(str: string): string {
+        return str.replaceAll(/^\//g, "");
     }
 }

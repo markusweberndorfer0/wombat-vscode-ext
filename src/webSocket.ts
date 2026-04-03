@@ -1,16 +1,16 @@
-import io from 'socket.io-client';
 import * as vscode from 'vscode';
 import { WombatOutputChannel } from './wombatOutputChannel';
-import { SidebarProvider } from './sidebarProvider';
+import { TreeViewProvider } from './treeViewProvider';
 import { API } from './api';
 import { ConnectionService } from './connectionService';
+import io from 'socket.io-client';
 
 export class WebSocket {
-    private sidebar;
+    private readonly treeView: TreeViewProvider;
     private socket?: SocketIOClient.Socket = undefined;
 
     constructor(context: vscode.ExtensionContext, private connectionService: ConnectionService) {
-        this.sidebar = SidebarProvider.getInstance(context);
+        this.treeView = TreeViewProvider.getInstance(context);
     }
 
     /**
@@ -32,6 +32,8 @@ export class WebSocket {
             autoConnect: true,
         } as SocketIOClient.ConnectOpts);
 
+        this.socket.connect();
+
         this.socket.on('stdout', (line: string) => {
             WombatOutputChannel.print(line);
         });
@@ -44,7 +46,7 @@ export class WebSocket {
         this.socket.on('connect', () => {
             vscode.window.showInformationMessage('Connected to Wombat');
             this.connectionService.setConnectionStatus(true);
-            this.sidebar.refresh();
+            this.treeView.refresh();
         });
     }
 }

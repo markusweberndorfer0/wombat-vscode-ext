@@ -8,6 +8,4 @@ src/**
 **/*.map
 **/*.ts
 **/.vscode-test.*
-../**
-../../**
 webpack.config.js
