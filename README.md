@@ -45,7 +45,3 @@ Package the extension
 npm install -g @vscode/vsce # if vsce not installed
 vsce package --out ./extension.vsix
 ```
-
-## Release Notes
-
-[CHANGELOG.md](./CHANGELOG.md)
