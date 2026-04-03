@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { SidebarProvider } from './sidebarProvider';
+import { TreeViewProvider } from './treeViewProvider';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { API } from './api';
 import { WebSocket } from './webSocket';
 import { WombatOutputChannel } from './wombatOutputChannel';
-import { Config } from '../../shared/models/config';
+import { Config } from './models/config';
 import { AddressService } from './addressService';
 import { ConnectionService } from './connectionService';
 
@@ -15,16 +15,19 @@ let currentActionCompleted = true;
 let ws: WebSocket | undefined = undefined;
 let addressService: AddressService | undefined = undefined;
 let connectionService: ConnectionService | undefined = undefined;
+let treeViewProvider: TreeViewProvider | undefined = undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
-    const sidebarProvider = SidebarProvider.getInstance(context);
+    treeViewProvider = TreeViewProvider.getInstance(context);
 
     context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
+        vscode.window.registerTreeDataProvider(
             'wombat-sidebar',
-            sidebarProvider
+            treeViewProvider
         )
     );
+
+    context.subscriptions.push(treeViewProvider);
 
     // Register commands
     context.subscriptions.push(
@@ -35,6 +38,38 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'kipr-wombat-vscode-extension.run',
             runProject
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.refresh-tree',
+            () => treeViewProvider?.refresh()
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.create-user',
+            () => treeViewProvider?.createUser()
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.delete-user',
+            (item) => treeViewProvider?.deleteUser(item)
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.create-project',
+            (item) => treeViewProvider?.createProject(item)
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.delete-project',
+            (item) => treeViewProvider?.deleteProject(item)
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.create-file',
+            (item) => treeViewProvider?.createFile(item)
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.delete-file',
+            (item) => treeViewProvider?.deleteFile(item)
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.open-remote-file',
+            (item) => treeViewProvider?.openFile(item)
         ),
         vscode.commands.registerCommand(
             'kipr-wombat-vscode-extension.stop',
@@ -55,26 +90,34 @@ export async function activate(context: vscode.ExtensionContext) {
     connectionService = new ConnectionService();
     context.subscriptions.push(addressService, connectionService);
 
-    API.address = addressService.getAddress();
-    sidebarProvider.updateAddress(API.address);
+    AddressService.address = addressService.getAddress();
+    treeViewProvider.updateAddress(AddressService.address);
 
     ws = new WebSocket(context, connectionService);
     await ws.listenOnTerminalOutput();
 
     context.subscriptions.push(
         addressService.onDidChangeAddress((address) => {
-            API.address = address;
-            sidebarProvider.updateAddress(address);
+            AddressService.address = address;
+            treeViewProvider?.updateAddress(address);
             ws?.listenOnTerminalOutput();
         }),
         connectionService.onDidChangeConnection((connected) => {
-            sidebarProvider.setConnectionStatus(connected);
+            treeViewProvider?.setConnectionStatus(connected);
         })
     );
 }
 
-export async function compileProject(e: any) {
-    const config = getConfigFromFilepath(e.fsPath);
+type ProjectTarget =
+    | {
+          fsPath?: string;
+          username?: string;
+          projectname?: string;
+      }
+    | undefined;
+
+export async function compileProject(target: ProjectTarget) {
+    const config = getProjectConfig(target);
 
     if (config === undefined) {
         return;
@@ -109,8 +152,8 @@ export async function compileProject(e: any) {
     currentActionCompleted = true;
 }
 
-export async function runProject(e: any) {
-    const config = getConfigFromFilepath(e.fsPath);
+export async function runProject(target: ProjectTarget) {
+    const config = getProjectConfig(target);
 
     if (config === undefined) {
         return;
@@ -123,7 +166,7 @@ export async function runProject(e: any) {
 
     if (savedSinceLastCompile === true) {
         WombatOutputChannel.println('File has been changed, compiling...');
-        await compileProject(e);
+        await compileProject(target);
     }
 
     try {
@@ -180,7 +223,7 @@ export async function autosaveWombatFile(e: vscode.TextDocument) {
     let savedFilepath: string = e.fileName;
     let wombatExtTempDirPath: string = path.join(
         os.tmpdir(),
-        'vscode_wombat_ext'
+        'vscode-wombat-ext'
     );
 
     savedSinceLastCompile = true;
@@ -215,7 +258,7 @@ export function getConfigFromFilepath(
 ): Config | undefined {
     let wombatExtTempDirPath: string = path.join(
         os.tmpdir(),
-        'vscode_wombat_ext'
+        'vscode-wombat-ext'
     );
 
     const relative = path.relative(wombatExtTempDirPath, savedFilepath);
@@ -229,4 +272,26 @@ export function getConfigFromFilepath(
 
         return config;
     }
+}
+
+function getProjectConfig(target: ProjectTarget): Config | undefined {
+    if (!target) {
+        return undefined;
+    }
+
+    if (
+        typeof target.username === 'string' &&
+        typeof target.projectname === 'string'
+    ) {
+        return {
+            username: target.username,
+            projectname: target.projectname,
+        };
+    }
+
+    if (typeof target.fsPath === 'string') {
+        return getConfigFromFilepath(target.fsPath);
+    }
+
+    return undefined;
 }

@@ -28,10 +28,7 @@ jobs:
       - name: Install npm packages
         run: npm ci
 
-      - name: Build webview
-        run: cd packages/webview && npm run build
-
       - name: Run tests
-        run: cd packages/extension && npm run test
+        run: npm run test
         env:
           DISPLAY: :99

@@ -1,8 +1,7 @@
 import fs from 'node:fs';
-import fse from 'fs-extra';
 import { API } from './api';
 import os from 'node:os';
-import { ProjectModel } from '../../shared/models/projectModel';
+import { ProjectModel } from './models/projectModel';
 
 /**
  * Backups a project and re-downloads files, so files
@@ -34,7 +33,7 @@ export function saveAndBackupProject(
         fs.rmSync(backupPath, { recursive: true });
     }
 
-    fse.moveSync(projectDir, backupPath);
+    fs.renameSync(projectDir, backupPath);
 
     if (!!project.source_files) {
         project.source_files.forEach((sourceFile) => {
@@ -64,7 +63,7 @@ export async function downloadFile(
     let getFileData: any = await API.getFile(filepath);
 
     let fileDir: string =
-        os.tmpdir() + '/vscode_wombat_ext/' + username + '/' + projectname;
+        os.tmpdir() + '/vscode-wombat-ext/' + username + '/' + projectname;
 
     if (!fs.existsSync(fileDir)) {
         fs.mkdirSync(fileDir, { recursive: true });

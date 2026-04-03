@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Replaced the webview sidebar with a native tree view
+
 ## [0.2.0]
 
 - Added option to enter wombat address
