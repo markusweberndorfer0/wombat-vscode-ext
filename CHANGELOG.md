@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.3.0]
 
 - Replaced the webview sidebar with a native tree view
 
