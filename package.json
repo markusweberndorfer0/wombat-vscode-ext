@@ -230,7 +230,7 @@
         "compile": "webpack",
         "watch": "tsc -b --watch ./",
         "pretest": "npm run compile && npm run lint",
-        "lint": "eslint",
+        "lint": "eslint src",
         "test": "vscode-test",
         "dev": "bash -exec 'code --extensionDevelopmentPath=$(pwd)'"
     },
