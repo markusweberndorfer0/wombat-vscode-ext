@@ -90,15 +90,15 @@ export async function activate(context: vscode.ExtensionContext) {
     connectionService = new ConnectionService();
     context.subscriptions.push(addressService, connectionService);
 
-    API.address = addressService.getAddress();
-    treeViewProvider.updateAddress(API.address);
+    AddressService.address = addressService.getAddress();
+    treeViewProvider.updateAddress(AddressService.address);
 
     ws = new WebSocket(context, connectionService);
     await ws.listenOnTerminalOutput();
 
     context.subscriptions.push(
         addressService.onDidChangeAddress((address) => {
-            API.address = address;
+            AddressService.address = address;
             treeViewProvider?.updateAddress(address);
             ws?.listenOnTerminalOutput();
         }),
