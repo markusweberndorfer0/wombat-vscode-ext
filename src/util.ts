@@ -79,9 +79,21 @@ export async function downloadFile(
 
     let configFilepath: string = fileDir + '/' + getFileData.name + '.json';
 
-    let decodedFileContent: string = atob(getFileData.content);
+    const decodedFileContent = decodeFileContent(getFileData.content);
     fs.writeFileSync(codeFilePath, decodedFileContent);
     fs.writeFileSync(configFilepath, JSON.stringify(configData));
 
     return codeFilePath;
+}
+
+function decodeFileContent(content: unknown): string | Buffer {
+    if (Buffer.isBuffer(content)) {
+        return content;
+    }
+
+    if (typeof content === 'string') {
+        return Buffer.from(content, 'base64');
+    }
+
+    return Buffer.from(JSON.stringify(content), 'utf8');
 }
