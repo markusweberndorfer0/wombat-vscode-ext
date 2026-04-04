@@ -295,11 +295,9 @@ export class TreeViewProvider
             filepath
         );
 
-        await vscode.window.showTextDocument(
-            await vscode.workspace.openTextDocument(
-                vscode.Uri.file(codeFilePath)
-            ),
-            vscode.ViewColumn.One
+        await vscode.commands.executeCommand(
+            'vscode.open',
+            vscode.Uri.file(codeFilePath)
         );
     }
 
@@ -473,15 +471,25 @@ export class TreeViewProvider
         sectionKind: ProjectSectionKind | undefined,
         project: ProjectModel
     ): Array<{ name: string; path: string; type: string }> {
+        const isDirectory = (file: { type?: string }) => file.type === 'Directory';
+
         switch (sectionKind) {
             case 'source':
-                return project.source_files ?? [];
+                return (project.source_files ?? []).filter(
+                    (file) => !isDirectory(file)
+                );
             case 'include':
-                return project.include_files ?? [];
+                return (project.include_files ?? []).filter(
+                    (file) => !isDirectory(file)
+                );
             case 'binary':
-                return project.binary_files ?? [];
+                return (project.binary_files ?? []).filter(
+                    (file) => !isDirectory(file)
+                );
             case 'data':
-                return project.data_files ?? [];
+                return (project.data_files ?? []).filter(
+                    (file) => !isDirectory(file)
+                );
             default:
                 return [];
         }
