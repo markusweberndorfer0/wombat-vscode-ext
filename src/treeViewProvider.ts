@@ -4,14 +4,9 @@ import os from 'node:os';
 import { downloadFile, saveAndBackupProject } from './util';
 import { ProjectModel } from './models/projectModel';
 
-type TreeNodeKind =
-    | 'status'
-    | 'user'
-    | 'project'
-    | 'section'
-    | 'file';
+type TreeNodeKind = 'status' | 'user' | 'project' | 'section' | 'file';
 
-type ProjectSectionKind = 'source' | 'include' | 'binary';
+type ProjectSectionKind = 'source' | 'include' | 'binary' | 'data';
 
 interface TreeNodeData {
     username?: string;
@@ -40,8 +35,7 @@ export class TreeViewProvider
     private static instance: TreeViewProvider | null = null;
     private readonly onDidChangeTreeDataEmitter =
         new vscode.EventEmitter<void>();
-    public readonly onDidChangeTreeData =
-        this.onDidChangeTreeDataEmitter.event;
+    public readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
     private wombatAddress = '192.168.125.1:8888';
     private wombatConnected = false;
 
@@ -114,7 +108,9 @@ export class TreeViewProvider
 
         try {
             await API.createUser(username);
-            vscode.window.showInformationMessage(`User ${username} was created`);
+            vscode.window.showInformationMessage(
+                `User ${username} was created`
+            );
             this.refresh();
         } catch (error) {
             vscode.window.showErrorMessage(
@@ -142,7 +138,9 @@ export class TreeViewProvider
 
         try {
             await API.deleteUser(username);
-            vscode.window.showInformationMessage(`User ${username} was deleted`);
+            vscode.window.showInformationMessage(
+                `User ${username} was deleted`
+            );
             this.refresh();
         } catch (error) {
             vscode.window.showErrorMessage(
@@ -183,11 +181,7 @@ export class TreeViewProvider
         }
 
         try {
-            await API.createProject(
-                programmingLanguage,
-                username,
-                projectName
-            );
+            await API.createProject(programmingLanguage, username, projectName);
             vscode.window.showInformationMessage(
                 `Project ${projectName} was created`
             );
@@ -249,7 +243,9 @@ export class TreeViewProvider
 
         try {
             await API.createFile(apiPath, filename);
-            vscode.window.showInformationMessage(`File ${filename} was created`);
+            vscode.window.showInformationMessage(
+                `File ${filename} was created`
+            );
             this.refresh();
         } catch (error) {
             vscode.window.showErrorMessage(`${error}`);
@@ -293,10 +289,16 @@ export class TreeViewProvider
             return;
         }
 
-        const codeFilePath = await downloadFile(username, projectname, filepath);
+        const codeFilePath = await downloadFile(
+            username,
+            projectname,
+            filepath
+        );
 
         await vscode.window.showTextDocument(
-            await vscode.workspace.openTextDocument(vscode.Uri.file(codeFilePath)),
+            await vscode.workspace.openTextDocument(
+                vscode.Uri.file(codeFilePath)
+            ),
             vscode.ViewColumn.One
         );
     }
@@ -345,7 +347,9 @@ export class TreeViewProvider
         }
     }
 
-    private async getProjectsForUser(username: string): Promise<WombatTreeItem[]> {
+    private async getProjectsForUser(
+        username: string
+    ): Promise<WombatTreeItem[]> {
         if (!username) {
             return [];
         }
@@ -389,6 +393,15 @@ export class TreeViewProvider
 
             return [
                 this.createSectionItem(
+                    'Include Files',
+                    'include',
+                    username,
+                    projectname,
+                    project.links.include_directory.href,
+                    project,
+                    project.include_files ?? []
+                ),
+                this.createSectionItem(
                     'Source Files',
                     'source',
                     username,
@@ -398,13 +411,13 @@ export class TreeViewProvider
                     project.source_files ?? []
                 ),
                 this.createSectionItem(
-                    'Include Files',
-                    'include',
+                    'Data Files',
+                    'data',
                     username,
                     projectname,
-                    project.links.include_directory.href,
+                    project.links.data_directory.href,
                     project,
-                    project.include_files ?? []
+                    project.data_files ?? []
                 ),
                 this.createSectionItem(
                     'Binary Files',
@@ -467,6 +480,8 @@ export class TreeViewProvider
                 return project.include_files ?? [];
             case 'binary':
                 return project.binary_files ?? [];
+            case 'data':
+                return project.data_files ?? [];
             default:
                 return [];
         }
@@ -649,10 +664,7 @@ export class TreeViewProvider
         return [];
     }
 
-    private extractName(
-        entry: unknown,
-        keys: string[]
-    ): string | undefined {
+    private extractName(entry: unknown, keys: string[]): string | undefined {
         if (typeof entry === 'string') {
             return entry;
         }

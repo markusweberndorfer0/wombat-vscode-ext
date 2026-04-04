@@ -4,7 +4,7 @@
     "description": "A extension which allows you to program the KIPR Wombat via Visual Studio Code",
     "publisher": "markusweberndorfer0",
     "icon": "media/logo.png",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "repository": {
         "type": "git",
         "url": "https://github.com/markusplayzz/wombat-vscode-ext.git"
@@ -100,7 +100,7 @@
                     "when": "resourceScheme == file && resourcePath =~ /vscode[-_]wombat[-_]ext/ && resourceExtname != .json",
                     "group": "navigation"
                 }
-            ], 
+            ],
             "commandPalette": [
                 {
                     "command": "kipr-wombat-vscode-extension.create-user",
@@ -144,7 +144,7 @@
                 {
                     "command": "kipr-wombat-vscode-extension.compile",
                     "when": "false"
-                }, 
+                },
                 {
                     "command": "kipr-wombat-vscode-extension.set-wombat-address"
                 }
