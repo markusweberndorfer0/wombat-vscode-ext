@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1]
+
+- Added data files support
+
 ## [0.3.0]
 
 - Replaced the webview sidebar with a native tree view
