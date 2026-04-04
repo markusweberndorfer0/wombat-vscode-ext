@@ -11,7 +11,7 @@ export class WebSocket {
     private socket?: SocketIOClient.Socket = undefined;
 
     constructor(context: vscode.ExtensionContext, private connectionService: ConnectionService) {
-        this.treeView = TreeViewProvider.getInstance(context);
+        this.treeView = TreeViewProvider.getInstance();
     }
 
     /**

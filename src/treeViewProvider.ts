@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { API } from './api';
 import os from 'node:os';
-import { downloadFile, saveAndBackupProject } from './util';
+import { downloadFile, getProjectTempDir, saveAndBackupProject } from './util';
 import { ProjectModel } from './models/projectModel';
+import fs from "node:fs";
 
 type TreeNodeKind = 'status' | 'user' | 'project' | 'section' | 'file';
 
@@ -39,13 +40,11 @@ export class TreeViewProvider
     private wombatAddress = '192.168.125.1:8888';
     private wombatConnected = false;
 
-    private constructor(private readonly context: vscode.ExtensionContext) {}
+    private constructor() {}
 
-    public static getInstance(
-        context: vscode.ExtensionContext
-    ): TreeViewProvider {
+    public static getInstance(): TreeViewProvider {
         if (!TreeViewProvider.instance) {
-            TreeViewProvider.instance = new TreeViewProvider(context);
+            TreeViewProvider.instance = new TreeViewProvider();
         }
 
         return TreeViewProvider.instance;
@@ -301,19 +300,40 @@ export class TreeViewProvider
         );
     }
 
-    saveProjectBackup(project: WombatTreeItem): void {
+    async saveProjectBackup(project: WombatTreeItem): Promise<void> {
         const username = project.data.username;
         const projectname = project.data.projectname;
-        const projectModel = project.data.project;
 
-        if (!username || !projectname || !projectModel) {
+        if (!username || !projectname) {
+            return;
+        }
+
+        if (!project.data.project) {
+            project.data.project = await API.getProject(username, projectname);
+        }
+
+        const projectPath = getProjectTempDir(username, projectname);
+
+        saveAndBackupProject(username, projectname, projectPath, project.data.project);
+    }
+
+    openProjectBackup(project: WombatTreeItem) {
+        const username = project.data.username;
+        const projectname = project.data.projectname;
+
+        if (!username || !projectname) {
             return;
         }
 
         const projectPath =
-            os.tmpdir() + '/vscode-wombat-ext/' + username + '/' + projectname;
+            `${getProjectTempDir(username, projectname)  }.bak`;
 
-        saveAndBackupProject(username, projectname, projectPath, projectModel);
+        if (!fs.existsSync(projectPath)) {
+            vscode.window.showErrorMessage("No backup was found!");
+            return;
+        }
+
+        vscode.env.openExternal(vscode.Uri.file(projectPath));
     }
 
     private async getRootChildren(): Promise<WombatTreeItem[]> {
@@ -384,10 +404,12 @@ export class TreeViewProvider
         }
 
         try {
-            const project = (await API.getProject(
+            const project = await API.getProject(
                 username,
                 projectname
-            )) as ProjectModel;
+            );
+
+            data.project = project;
 
             return [
                 this.createSectionItem(
@@ -555,7 +577,7 @@ export class TreeViewProvider
             projectname,
             vscode.TreeItemCollapsibleState.Collapsed,
             'project',
-            { username, projectname }
+            { username, projectname } as TreeNodeData // todo
         );
 
         item.contextValue = 'wombat-project';

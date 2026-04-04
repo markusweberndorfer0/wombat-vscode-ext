@@ -2,6 +2,7 @@ import axios from 'axios';
 import { WombatOutputChannel } from './wombatOutputChannel';
 import { CompileResponse } from './models/compileResponse';
 import { AddressService } from './addressService';
+import { ProjectModel } from './models/projectModel';
 
 export class API {
     /**
@@ -14,7 +15,7 @@ export class API {
         if (apiResult.status === 200) {
             return apiResult.data;
         }
-        throw new Error('Got response code ' + apiResult.status);
+        throw new Error(`Got response code ${  apiResult.status}`);
     }
 
     /**
@@ -27,7 +28,7 @@ export class API {
 
         let apiResult = await axios.delete(apiUrl);
         if (apiResult.status !== 204) {
-            throw new Error('Got response code ' + apiResult.status);
+            throw new Error(`Got response code ${  apiResult.status}`);
         }
     }
 
@@ -41,7 +42,7 @@ export class API {
 
         let apiResult = await axios.put(apiUrl);
         if (apiResult.status !== 204) {
-            throw new Error('Got response code ' + apiResult.status);
+            throw new Error(`Got response code ${  apiResult.status}`);
         }
     }
 
@@ -76,7 +77,7 @@ export class API {
 
         let apiResult = await axios.post(apiUrl, apiData);
         if (apiResult.status !== 201) {
-            throw new Error('Got response code ' + apiResult.status);
+            throw new Error(`Got response code ${  apiResult.status}`);
         }
     }
 
@@ -91,7 +92,7 @@ export class API {
 
         let apiResult = await axios.delete(apiUrl);
         if (apiResult.status !== 204) {
-            throw new Error('Got response code ' + apiResult.status);
+            throw new Error(`Got response code ${  apiResult.status}`);
         }
     }
 
@@ -108,7 +109,7 @@ export class API {
         if (apiResult.status === 200) {
             return apiResult.data;
         }
-        throw new Error('Got response code ' + apiResult.status);
+        throw new Error(`Got response code ${  apiResult.status}`);
     }
 
     /**
@@ -117,7 +118,7 @@ export class API {
      * @param projectname
      * @returns The project data
      */
-    public static async getProject(username: string, projectname: string) {
+    public static async getProject(username: string, projectname: string): Promise<ProjectModel> {
         let apiUrl: string =
             `http://${AddressService.address}/api/projects/${username}/${projectname}`;
 
@@ -125,7 +126,7 @@ export class API {
         if (apiResult.status === 200) {
             return apiResult.data;
         }
-        throw new Error('Got response code ' + apiResult.status);
+        throw new Error(`Got response code ${  apiResult.status}`);
     }
 
     /**
@@ -139,7 +140,7 @@ export class API {
         if (apiResult.status === 200) {
             return apiResult.data;
         }
-        throw new Error('Got response code ' + apiResult.status);
+        throw new Error(`Got response code ${  apiResult.status}`);
     }
 
     /**
@@ -156,7 +157,7 @@ export class API {
 
         let apiResult = await axios.put(apiUrl, apiData);
         if (apiResult.status !== 204) {
-            throw new Error('Got response code ' + apiResult.status);
+            throw new Error(`Got response code ${  apiResult.status}`);
         }
     }
 
@@ -207,7 +208,7 @@ export class API {
 
         let apiResult = await axios.post(apiUrl, apiData);
         if (apiResult.status !== 200) {
-            throw new Error('Got response code ' + apiResult.status);
+            throw new Error(`Got response code ${  apiResult.status}`);
         }
 
         const data = apiResult.data as CompileResponse;
@@ -219,13 +220,13 @@ export class API {
             data.result.stderr.length > 0
         ) {
             return (
-                `Compilation succeeded with warning(s)\n${data.result.stderr}` +
-                (data.result.stdout.length > 0 ? `\n${data.result.stdout}` : '')
+                `Compilation succeeded with warning(s)\n${data.result.stderr}${ 
+                data.result.stdout.length > 0 ? `\n${data.result.stdout}` : ''}`
             );
         } else {
             return (
-                'Compilation succeeded' +
-                (data.result.stdout.length > 0 ? `\n${data.result.stdout}` : '')
+                `Compilation succeeded${ 
+                data.result.stdout.length > 0 ? `\n${data.result.stdout}` : ''}`
             );
         }
     }
@@ -250,7 +251,7 @@ export class API {
         if (apiResult.status === 409) {
             throw new Error('Program is already running!');
         } else if (![200, 201, 204].includes(apiResult.status)) {
-            throw new Error('Got response code ' + apiResult.status);
+            throw new Error(`Got response code ${  apiResult.status}`);
         } else {
             WombatOutputChannel.show();
         }
@@ -265,7 +266,7 @@ export class API {
         let apiResult = await axios.delete(apiUrl);
 
         if (apiResult.status !== 200) {
-            throw new Error('Got response code ' + apiResult.status);
+            throw new Error(`Got response code ${  apiResult.status}`);
         }
     }
 

@@ -9,6 +9,7 @@ import { WombatOutputChannel } from './wombatOutputChannel';
 import { Config } from './models/config';
 import { AddressService } from './addressService';
 import { ConnectionService } from './connectionService';
+import { getExtensionTempDir } from './util';
 
 let savedSinceLastCompile = true;
 let currentActionCompleted = true;
@@ -18,7 +19,7 @@ let connectionService: ConnectionService | undefined = undefined;
 let treeViewProvider: TreeViewProvider | undefined = undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
-    treeViewProvider = TreeViewProvider.getInstance(context);
+    treeViewProvider = TreeViewProvider.getInstance();
 
     context.subscriptions.push(
         vscode.window.registerTreeDataProvider(
@@ -66,6 +67,14 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'kipr-wombat-vscode-extension.delete-file',
             (item) => treeViewProvider?.deleteFile(item)
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.create-project-backup',
+            (item) => treeViewProvider?.saveProjectBackup(item)
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.open-project-backup',
+            (item) => treeViewProvider?.openProjectBackup(item)
         ),
         vscode.commands.registerCommand(
             'kipr-wombat-vscode-extension.open-remote-file',
@@ -221,16 +230,14 @@ export async function setWombatAddress() {
 
 export async function autosaveWombatFile(e: vscode.TextDocument) {
     let savedFilepath: string = e.fileName;
-    let wombatExtTempDirPath: string = path.join(
-        os.tmpdir(),
-        'vscode-wombat-ext'
-    );
+    let wombatExtTempDirPath: string = getExtensionTempDir();
 
     savedSinceLastCompile = true;
 
     const relative = path.relative(wombatExtTempDirPath, savedFilepath);
+    // check if file does belong to the wombat extension
     if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
-        let configFilepath: string = savedFilepath + '.json';
+        let configFilepath: string = `${savedFilepath}.json`;
         let config: any = JSON.parse(
             fs.readFileSync(configFilepath).toString()
         );
@@ -256,15 +263,13 @@ export async function autosaveWombatFile(e: vscode.TextDocument) {
 export function getConfigFromFilepath(
     savedFilepath: string
 ): Config | undefined {
-    let wombatExtTempDirPath: string = path.join(
-        os.tmpdir(),
-        'vscode-wombat-ext'
-    );
+    let wombatExtTempDirPath: string = getExtensionTempDir();
 
     const relative = path.relative(wombatExtTempDirPath, savedFilepath);
 
+    // check if file does belong to the wombat extension
     if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
-        let configFilepath: string = savedFilepath + '.json';
+        let configFilepath: string = `${savedFilepath  }.json`;
 
         const config: any = JSON.parse(
             fs.readFileSync(configFilepath).toString()

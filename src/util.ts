@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import { API } from './api';
 import os from 'node:os';
 import { ProjectModel } from './models/projectModel';
+import fse from 'fs-extra';
+import path from 'node:path';
 
 /**
  * Backups a project and re-downloads files, so files
@@ -30,10 +32,14 @@ export function saveAndBackupProject(
     const backupPath = `${projectDir}.bak`;
 
     if (fs.existsSync(backupPath)) {
-        fs.rmSync(backupPath, { recursive: true });
+        fse.rmSync(backupPath, { recursive: true });
     }
 
-    fs.renameSync(projectDir, backupPath);
+    fse.mkdirSync(backupPath, { recursive: true });
+
+    fse.copySync(projectDir, backupPath, {
+        filter: (src) => !src.endsWith('.json')
+    });
 
     if (!!project.source_files) {
         project.source_files.forEach((sourceFile) => {
@@ -62,14 +68,13 @@ export async function downloadFile(
 ): Promise<string> {
     let getFileData: any = await API.getFile(filepath);
 
-    let fileDir: string =
-        os.tmpdir() + '/vscode-wombat-ext/' + username + '/' + projectname;
+    let fileDir: string = getProjectTempDir(username, projectname);
 
     if (!fs.existsSync(fileDir)) {
         fs.mkdirSync(fileDir, { recursive: true });
     }
 
-    let codeFilePath: string = fileDir + '/' + getFileData.name;
+    let codeFilePath: string = `${fileDir}/${getFileData.name}`;
 
     let configData: any = {
         filepathOnWombat: getFileData.path,
@@ -77,7 +82,7 @@ export async function downloadFile(
         projectname,
     };
 
-    let configFilepath: string = fileDir + '/' + getFileData.name + '.json';
+    let configFilepath: string = `${fileDir}/${getFileData.name}.json`;
 
     const decodedFileContent = decodeFileContent(getFileData.content);
     fs.writeFileSync(codeFilePath, decodedFileContent);
@@ -86,6 +91,13 @@ export async function downloadFile(
     return codeFilePath;
 }
 
+export function getProjectTempDir(username: string, projectname: string): string {
+    return path.join(getExtensionTempDir(), username, projectname);
+}
+
+export function getExtensionTempDir(): string {
+    return path.join(os.tmpdir(), "vscode-wombat-ext");
+}
 function decodeFileContent(content: unknown): string | Buffer {
     if (Buffer.isBuffer(content)) {
         return content;

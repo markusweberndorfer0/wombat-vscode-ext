@@ -28,6 +28,7 @@ export default [
             curly: 'warn',
             eqeqeq: 'warn',
             'no-throw-literal': 'warn',
+            'prefer-template': 'warn',
             semi: 'warn',
         },
     },
