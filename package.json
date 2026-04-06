@@ -277,7 +277,7 @@
         "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.4.1",
         "babel-loader": "^10.0.0",
-        "eslint": "^10.1.0",
+        "eslint": "^10.2.0",
         "eslint-plugin-unused-imports": "^4.4.1",
         "ts-loader": "^9.2.5",
         "typescript": "^6.0.2",
