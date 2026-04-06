@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { WombatOutputChannel } from './wombatOutputChannel';
 import { TreeViewProvider } from './treeViewProvider';
-import { API } from './api';
 import { ConnectionService } from './connectionService';
 import io from 'socket.io-client';
 import { AddressService } from './addressService';

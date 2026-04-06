@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import { API } from './api';
 import os from 'node:os';
-import { ProjectModel } from './models/projectModel';
 import fse from 'fs-extra';
 import path from 'node:path';
 import crypto from 'node:crypto';
