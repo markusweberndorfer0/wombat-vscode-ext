@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.3]
+## [0.4.0]
 
 - Download full projects when a project node is expanded and open remote files from the tree
 - Detect checksum mismatches before upload or redownload, prompt before overwriting, and create conflict backups with tagged folders plus `_server` snapshots
