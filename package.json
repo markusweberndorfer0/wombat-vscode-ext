@@ -269,7 +269,7 @@
         "@babel/preset-env": "^7.26.9",
         "@types/fs-extra": "^11.0.4",
         "@types/mocha": "^10.0.10",
-        "@types/node": "^25.5.0",
+        "@types/node": "^25.5.2",
         "@types/socket.io-client": "^1.4.36",
         "@types/vscode": "^1.88.0",
         "@typescript-eslint/eslint-plugin": "^8.58.0",
