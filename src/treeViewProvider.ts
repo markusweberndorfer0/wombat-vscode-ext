@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import { API } from './api';
-import os from 'node:os';
-import { downloadFile, getProjectTempDir, saveAndBackupProject } from './util';
+import { downloadFile, getExtensionTempDir, getProjectBackupDir, createProjectBackupSnapshot, getProjectTempDir } from './util';
 import { ProjectModel } from './models/projectModel';
 import fs from "node:fs";
+import path from 'node:path';
+import { Config } from './models/config';
 
 type TreeNodeKind = 'status' | 'user' | 'project' | 'section' | 'file';
 
@@ -17,6 +18,7 @@ interface TreeNodeData {
     filename?: string;
     sectionKind?: ProjectSectionKind;
     project?: ProjectModel;
+    projectDownloaded?: boolean;
 }
 
 class WombatTreeItem extends vscode.TreeItem {
@@ -283,24 +285,100 @@ export class TreeViewProvider
         const username = file.data.username;
         const projectname = file.data.projectname;
         const filepath = file.data.filepath;
+        const sectionKind = file.data.sectionKind;
 
-        if (!username || !projectname || !filepath) {
+        if (!username || !projectname || !filepath || !sectionKind) {
             return;
         }
 
-        const codeFilePath = await downloadFile(
+        // Read old checksum before download if file exists
+        const fileDir = getProjectTempDir(username, projectname, sectionKind);
+        const filename = path.basename(filepath);
+        const codeFilePath = path.join(fileDir, filename);
+        const configFilePath = `${codeFilePath}.json`;
+
+        let oldChecksum: string | undefined;
+        let oldFileContent: Buffer | undefined;
+
+        if (fs.existsSync(configFilePath)) {
+            try {
+                const oldConfig: Config = JSON.parse(fs.readFileSync(configFilePath, 'utf-8'));
+                oldChecksum = oldConfig.contentChecksum;
+                if (fs.existsSync(codeFilePath)) {
+                    oldFileContent = fs.readFileSync(codeFilePath);
+                }
+            } catch (e) {
+                // Ignore errors reading old config
+            }
+        }
+
+        // Download new version
+        const newCodeFilePath = await downloadFile(
             username,
             projectname,
-            filepath
+            filepath,
+            sectionKind
         );
+
+        // Check for conflicts if file existed before
+        if (oldChecksum !== undefined) {
+            try {
+                const newConfig: Config = JSON.parse(fs.readFileSync(`${newCodeFilePath}.json`, 'utf-8'));
+
+                if (oldChecksum !== newConfig.contentChecksum) {
+                    // Checksum mismatch detected - file changed on server
+                    const projectPath = path.join(getExtensionTempDir(), username, projectname);
+                    const backupPath = createProjectBackupSnapshot(username, projectname, projectPath, 'conflict_download');
+
+                    if (backupPath) {
+                        const relativeFilePath = path.relative(projectPath, codeFilePath);
+
+                        if (relativeFilePath && !relativeFilePath.startsWith('..') && !path.isAbsolute(relativeFilePath)) {
+                            const localBackupFilePath = path.join(backupPath, relativeFilePath);
+                            const parsedBackupFilePath = path.parse(localBackupFilePath);
+                            const newVersionBackupFilePath = path.join(
+                                parsedBackupFilePath.dir,
+                                `${parsedBackupFilePath.name}_downloaded${parsedBackupFilePath.ext}`
+                            );
+
+                            // Save new version to backup with _downloaded suffix
+                            const newFileContent = fs.readFileSync(newCodeFilePath);
+                            fs.writeFileSync(newVersionBackupFilePath, newFileContent);
+                        }
+
+                        const backupMessage = `A backup was created for ${username}/${projectname} before opening the file.`;
+                        vscode.window.showInformationMessage(backupMessage);
+                    }
+
+                    const choice = await vscode.window.showWarningMessage(
+                        `The file '${filename}' changed on the server. What would you like to do?`,
+                        'Use Downloaded Version',
+                        'Keep Local Version'
+                    );
+
+                    // Default to keeping local version if user didn't explicitly choose to use downloaded version
+                    if (choice !== 'Use Downloaded Version') {
+                        // Restore the old file (also handles user dismissing the dialog)
+                        if (oldFileContent) {
+                            fs.writeFileSync(newCodeFilePath, oldFileContent);
+                            fs.writeFileSync(configFilePath, JSON.stringify({ contentChecksum: oldChecksum, filepathOnWombat: filepath, username, projectname }));
+                        }
+                    }
+                    // If 'Use Downloaded Version', keep the newly downloaded file as-is
+                }
+            } catch (e) {
+                vscode.window.showErrorMessage(`Error reading file metadata: ${e}`);
+                return;
+            }
+        }
 
         await vscode.commands.executeCommand(
             'vscode.open',
-            vscode.Uri.file(codeFilePath)
+            vscode.Uri.file(newCodeFilePath)
         );
     }
 
-    async saveProjectBackup(project: WombatTreeItem): Promise<void> {
+    async openProject(project: WombatTreeItem): Promise<void> {
         const username = project.data.username;
         const projectname = project.data.projectname;
 
@@ -312,9 +390,9 @@ export class TreeViewProvider
             project.data.project = await API.getProject(username, projectname);
         }
 
-        const projectPath = getProjectTempDir(username, projectname);
+        await this.downloadProjectFiles(username, projectname, project.data.project);
 
-        saveAndBackupProject(username, projectname, projectPath, project.data.project);
+        project.data.projectDownloaded = true;
     }
 
     openProjectBackup(project: WombatTreeItem) {
@@ -325,8 +403,7 @@ export class TreeViewProvider
             return;
         }
 
-        const projectPath =
-            `${getProjectTempDir(username, projectname)  }.bak`;
+        const projectPath = getProjectBackupDir(username, projectname);
 
         if (!fs.existsSync(projectPath)) {
             vscode.window.showErrorMessage("No backup was found!");
@@ -404,12 +481,25 @@ export class TreeViewProvider
         }
 
         try {
-            const project = await API.getProject(
-                username,
-                projectname
-            );
+            if (!data.projectDownloaded) {
+                await this.openProject(
+                    new WombatTreeItem(
+                        projectname,
+                        vscode.TreeItemCollapsibleState.None,
+                        'project',
+                        data
+                    )
+                );
+            }
 
-            data.project = project;
+            if (!data.project) {
+                data.project = await API.getProject(
+                    username,
+                    projectname
+                );
+            }
+
+            const project = data.project;
 
             return [
                 this.createSectionItem(
@@ -466,7 +556,7 @@ export class TreeViewProvider
         const username = data.username;
         const projectname = data.projectname;
 
-        if (!project || !username || !projectname) {
+        if (!project || !username || !projectname || data.sectionKind === undefined) {
             return [];
         }
 
@@ -479,7 +569,8 @@ export class TreeViewProvider
                     projectname,
                     file.name,
                     file.path,
-                    file.path
+                    file.path,
+                    data.sectionKind!!
                 )
             )
             .sort((left, right) =>
@@ -514,6 +605,27 @@ export class TreeViewProvider
                 );
             default:
                 return [];
+        }
+    }
+
+    private async downloadProjectFiles(
+        username: string,
+        projectname: string,
+        project: ProjectModel
+    ): Promise<void> {
+        const sectionKinds: ProjectSectionKind[] = [
+            'include',
+            'source',
+            'data',
+            'binary',
+        ];
+
+        for (const sectionKind of sectionKinds) {
+            const files = this.getFilesForSection(sectionKind, project);
+
+            for (const file of files) {
+                await downloadFile(username, projectname, file.path, sectionKind);
+            }
         }
     }
 
@@ -623,13 +735,14 @@ export class TreeViewProvider
         projectname: string,
         filename: string,
         filepath: string,
-        apiPath: string
+        apiPath: string,
+        sectionKind: ProjectSectionKind
     ): WombatTreeItem {
         const item = new WombatTreeItem(
             filename,
             vscode.TreeItemCollapsibleState.None,
             'file',
-            { username, projectname, filepath, apiPath, filename }
+            { username, projectname, filepath, apiPath, filename, sectionKind }
         );
 
         item.contextValue = 'wombat-file';

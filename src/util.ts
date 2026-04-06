@@ -4,54 +4,43 @@ import os from 'node:os';
 import { ProjectModel } from './models/projectModel';
 import fse from 'fs-extra';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
-/**
- * Backups a project and re-downloads files, so files
- * on the server wont be overridden
- *
- * If a project doesn't exist locally, it returns
- * @param username
- * @param projectname
- * @param projectDir project directory
- * @param project ProjectModel
- */
-export function saveAndBackupProject(
+const BACKUP_ROOT = path.join(os.homedir(), '.wombat', 'backups');
+const BACKUP_RETENTION_MS = 31 * 24 * 60 * 60 * 1000; // 31 days in milliseconds
+
+export interface DownloadFileOptions {
+    onBeforeOverwrite?: (context: {
+        fileDir: string;
+        codeFilePath: string;
+        projectDir: string;
+    }) => Promise<void> | void;
+}
+
+export function createProjectBackupSnapshot(
     username: string,
     projectname: string,
     projectDir: string,
-    project: ProjectModel
-): void {
+    backupTag?: string
+): string | undefined {
     try {
         if (!fs.existsSync(projectDir)) {
-            return;
+            return undefined;
         }
     } catch (e) {
-        return;
+        return undefined;
     }
 
-    const backupPath = `${projectDir}.bak`;
+    const backupPath = createBackupPath(username, projectname, backupTag);
 
-    if (fs.existsSync(backupPath)) {
-        fse.rmSync(backupPath, { recursive: true });
-    }
-
-    fse.mkdirSync(backupPath, { recursive: true });
-
+    fse.mkdirSync(path.dirname(backupPath), { recursive: true });
     fse.copySync(projectDir, backupPath, {
         filter: (src) => !src.endsWith('.json')
     });
 
-    if (!!project.source_files) {
-        project.source_files.forEach((sourceFile) => {
-            downloadFile(username, projectname, sourceFile.path);
-        });
-    }
+    pruneOldBackups(username, projectname);
 
-    if (!!project.include_files) {
-        project.include_files.forEach((includeFile) => {
-            downloadFile(username, projectname, includeFile.path);
-        });
-    }
+    return backupPath;
 }
 
 /**
@@ -64,11 +53,13 @@ export function saveAndBackupProject(
 export async function downloadFile(
     username: string,
     projectname: string,
-    filepath: string
+    filepath: string,
+    filetype: "source"|"include"|"data"|"binary",
+    options?: DownloadFileOptions
 ): Promise<string> {
     let getFileData: any = await API.getFile(filepath);
 
-    let fileDir: string = getProjectTempDir(username, projectname);
+    let fileDir: string = getProjectTempDir(username, projectname, filetype);
 
     if (!fs.existsSync(fileDir)) {
         fs.mkdirSync(fileDir, { recursive: true });
@@ -76,29 +67,83 @@ export async function downloadFile(
 
     let codeFilePath: string = `${fileDir}/${getFileData.name}`;
 
+    if (fs.existsSync(codeFilePath) && options?.onBeforeOverwrite) {
+        await options.onBeforeOverwrite({
+            fileDir,
+            codeFilePath,
+            projectDir: path.join(getExtensionTempDir(), username, projectname),
+        });
+    }
+
     let configData: any = {
         filepathOnWombat: getFileData.path,
         username,
         projectname,
+        contentChecksum: getContentChecksum(getFileData.content),
     };
 
     let configFilepath: string = `${fileDir}/${getFileData.name}.json`;
 
-    const decodedFileContent = decodeFileContent(getFileData.content);
+    const decodedFileContent = decodeRemoteContent(getFileData.content);
     fs.writeFileSync(codeFilePath, decodedFileContent);
     fs.writeFileSync(configFilepath, JSON.stringify(configData));
 
     return codeFilePath;
 }
 
-export function getProjectTempDir(username: string, projectname: string): string {
-    return path.join(getExtensionTempDir(), username, projectname);
+export function getContentChecksum(content: unknown): string {
+    return crypto.createHash('sha256').update(decodeRemoteContent(content)).digest('hex');
+}
+
+export function getProjectTempDir(username: string, projectname: string, filetype: "source"|"include"|"data"|"binary"): string {
+    return path.join(getExtensionTempDir(), username, projectname, filetype);
 }
 
 export function getExtensionTempDir(): string {
     return path.join(os.tmpdir(), "vscode-wombat-ext");
 }
-function decodeFileContent(content: unknown): string | Buffer {
+
+export function getProjectBackupDir(username: string, projectname: string): string {
+    return path.join(BACKUP_ROOT, username, projectname);
+}
+
+function createBackupPath(
+    username: string,
+    projectname: string,
+    backupTag?: string
+): string {
+    const timestamp = new Date().toISOString().replace(/:/g, '-');
+    const backupFolderName = backupTag
+        ? `${timestamp}_${backupTag}`
+        : timestamp;
+
+    return path.join(BACKUP_ROOT, username, projectname, backupFolderName);
+}
+
+function pruneOldBackups(username: string, projectname: string): void {
+    const projectBackupDir = getProjectBackupDir(username, projectname);
+
+    if (!fs.existsSync(projectBackupDir)) {
+        return;
+    }
+
+    const cutoffTime = Date.now() - BACKUP_RETENTION_MS;
+
+    for (const entry of fs.readdirSync(projectBackupDir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) {
+            continue;
+        }
+
+        const entryPath = path.join(projectBackupDir, entry.name);
+        const stats = fs.statSync(entryPath);
+
+        if (stats.mtimeMs < cutoffTime) {
+            fse.rmSync(entryPath, { recursive: true, force: true });
+        }
+    }
+}
+
+export function decodeRemoteContent(content: unknown): Buffer {
     if (Buffer.isBuffer(content)) {
         return content;
     }

@@ -4,4 +4,6 @@
 export interface Config {
   username: string;
   projectname: string;
+  filepathOnWombat?: string;
+  contentChecksum?: string;
 }

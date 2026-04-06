@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.3]
+
+- Download full projects when a project node is expanded and open remote files from the tree
+- Detect checksum mismatches before upload or redownload, prompt before overwriting, and create conflict backups with tagged folders plus `_server` snapshots
+- Keep manual project backups available from the tree and retain timestamped backups for 31 days
+
 ## [0.3.2]
 
 - Support all filetypes

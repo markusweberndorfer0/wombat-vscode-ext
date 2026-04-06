@@ -279,7 +279,7 @@
         "babel-loader": "^10.0.0",
         "eslint": "^10.1.0",
         "ts-loader": "^9.2.5",
-        "typescript": "^5.7.3",
+        "typescript": "^6.0.2",
         "webpack": "^5.52.1",
         "webpack-cli": "^7.0.2",
         "webpack-remove-debug": "^0.1.0"
