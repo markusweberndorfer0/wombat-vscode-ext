@@ -2,13 +2,13 @@ import * as vscode from 'vscode';
 import { TreeViewProvider } from './treeViewProvider';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import { API } from './api';
 import { WebSocket } from './webSocket';
 import { WombatOutputChannel } from './wombatOutputChannel';
 import { Config } from './models/config';
 import { AddressService } from './addressService';
 import { ConnectionService } from './connectionService';
+import { createProjectBackupSnapshot, decodeRemoteContent, getContentChecksum, getExtensionTempDir } from './util';
 
 let savedSinceLastCompile = true;
 let currentActionCompleted = true;
@@ -18,7 +18,7 @@ let connectionService: ConnectionService | undefined = undefined;
 let treeViewProvider: TreeViewProvider | undefined = undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
-    treeViewProvider = TreeViewProvider.getInstance(context);
+    treeViewProvider = TreeViewProvider.getInstance();
 
     context.subscriptions.push(
         vscode.window.registerTreeDataProvider(
@@ -66,6 +66,14 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'kipr-wombat-vscode-extension.delete-file',
             (item) => treeViewProvider?.deleteFile(item)
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.create-project-backup',
+            (item) => createManualProjectBackup(item)
+        ),
+        vscode.commands.registerCommand(
+            'kipr-wombat-vscode-extension.open-project-backup',
+            (item) => treeViewProvider?.openProjectBackup(item)
         ),
         vscode.commands.registerCommand(
             'kipr-wombat-vscode-extension.open-remote-file',
@@ -221,26 +229,87 @@ export async function setWombatAddress() {
 
 export async function autosaveWombatFile(e: vscode.TextDocument) {
     let savedFilepath: string = e.fileName;
-    let wombatExtTempDirPath: string = path.join(
-        os.tmpdir(),
-        'vscode-wombat-ext'
-    );
+    let wombatExtTempDirPath: string = getExtensionTempDir();
 
     savedSinceLastCompile = true;
 
     const relative = path.relative(wombatExtTempDirPath, savedFilepath);
+    // check if file does belong to the wombat extension
     if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
-        let configFilepath: string = savedFilepath + '.json';
+        let configFilepath: string = `${savedFilepath}.json`;
         let config: any = JSON.parse(
             fs.readFileSync(configFilepath).toString()
         );
 
-        let fileContent: string = fs.readFileSync(savedFilepath).toString();
+        const fileContentBuffer: Buffer = fs.readFileSync(savedFilepath);
 
-        const encodedContent: string = btoa(fileContent);
+        const encodedContent: string = fileContentBuffer.toString('base64');
+
+        if (typeof config.contentChecksum === 'string') {
+            let remoteFileData: any;
+
+            try {
+                remoteFileData = await API.getFile(config.filepathOnWombat);
+            } catch (e) {
+                vscode.window.showErrorMessage(
+                    `There were errors checking the remote file before saving -> ${e}`
+                );
+                WombatOutputChannel.println(
+                    `There were errors checking the remote file before saving -> ${e}`
+                );
+                WombatOutputChannel.show();
+                return;
+            }
+
+            const remoteChecksum = getContentChecksum(remoteFileData.content);
+
+            if (remoteChecksum !== config.contentChecksum) {
+                const projectPath = path.join(
+                    getExtensionTempDir(),
+                    config.username,
+                    config.projectname
+                );
+                const backupPath = createProjectBackupSnapshot(
+                    config.username,
+                    config.projectname,
+                    projectPath,
+                    'conflict_upload'
+                );
+
+                if (backupPath) {
+                    const relativeFilePath = path.relative(projectPath, savedFilepath);
+
+                    if (relativeFilePath && !relativeFilePath.startsWith('..') && !path.isAbsolute(relativeFilePath)) {
+                        const localBackupFilePath = path.join(backupPath, relativeFilePath);
+                        const parsedBackupFilePath = path.parse(localBackupFilePath);
+                        const serverBackupFilePath = path.join(
+                            parsedBackupFilePath.dir,
+                            `${parsedBackupFilePath.name}_server${parsedBackupFilePath.ext}`
+                        );
+
+                        fs.writeFileSync(serverBackupFilePath, decodeRemoteContent(remoteFileData.content));
+                    }
+
+                    const backupMessage = `A background backup was created for ${config.username}/${config.projectname}.`;
+                    vscode.window.showInformationMessage(backupMessage);
+                }
+
+                const overwriteAnswer = await vscode.window.showWarningMessage(
+                    `The file '${config.filepathOnWombat}' changed on the server after download. Overwrite the server version with your local file?`,
+                    'Yes',
+                    'No'
+                );
+
+                if (overwriteAnswer !== 'Yes') {
+                    return;
+                }
+            }
+        }
 
         try {
             await API.putFile(config.filepathOnWombat, encodedContent);
+            config.contentChecksum = getContentChecksum(fileContentBuffer);
+            fs.writeFileSync(configFilepath, JSON.stringify(config));
         } catch (e) {
             vscode.window.showErrorMessage(
                 `There were errors saving the file -> ${e}`
@@ -253,18 +322,35 @@ export async function autosaveWombatFile(e: vscode.TextDocument) {
     }
 }
 
+async function createManualProjectBackup(item: any): Promise<void> {
+    const username = item?.data?.username;
+    const projectname = item?.data?.projectname;
+
+    if (!username || !projectname) {
+        return;
+    }
+
+    const projectPath = path.join(getExtensionTempDir(), username, projectname);
+    const backupPath = createProjectBackupSnapshot(username, projectname, projectPath);
+
+    if (!backupPath) {
+        vscode.window.showWarningMessage(`No local project files found for ${username}/${projectname}.`);
+        return;
+    }
+
+    vscode.window.showInformationMessage(`Backup created for ${username}/${projectname}.`);
+}
+
 export function getConfigFromFilepath(
     savedFilepath: string
 ): Config | undefined {
-    let wombatExtTempDirPath: string = path.join(
-        os.tmpdir(),
-        'vscode-wombat-ext'
-    );
+    let wombatExtTempDirPath: string = getExtensionTempDir();
 
     const relative = path.relative(wombatExtTempDirPath, savedFilepath);
 
+    // check if file does belong to the wombat extension
     if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
-        let configFilepath: string = savedFilepath + '.json';
+        let configFilepath: string = `${savedFilepath  }.json`;
 
         const config: any = JSON.parse(
             fs.readFileSync(configFilepath).toString()

@@ -24,6 +24,6 @@ export class WombatOutputChannel {
      * @param str
      */
     public static println(str: string) {
-        WombatOutputChannel.wombatOutput.append(str + "\n");
+        WombatOutputChannel.wombatOutput.append(`${str  }\n`);
     }
 }

@@ -6,12 +6,11 @@
 
 ## Features
 
-- Create and delete Wombat users and projects
-- Browse projects in the VS Code tree view
-- Open, save, and auto-upload source files
-- Compile, run, and stop Wombat projects
-- Manage source and include files from the tree
-- Display Wombat project output
+- Connect to a Wombat by address, view connection status, and browse users, projects, source/include/data/binary files, and the backup folder from the tree
+- Download full projects on expansion, open files in VS Code, and auto-save edits back to Wombat
+- Detect client/server checksum mismatches before upload or redownload, create conflict backups with tagged folders and `_server` snapshots, and ask for explicit confirmation before overwriting
+- Compile, run, and stop Wombat projects from VS Code
+- Display Wombat project output, refresh the tree, and change the Wombat address from the sidebar
 
 ## Requirements
 
